@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedCandidaturesRouteImport } from './routes/_authenticated/candidatures'
 import { Route as AuthenticatedCvRouteImport } from './routes/_authenticated/cv'
 import { Route as AuthenticatedOffresRouteImport } from './routes/_authenticated/offres'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
@@ -30,6 +31,12 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedCandidaturesRoute =
+  AuthenticatedCandidaturesRouteImport.update({
+    id: '/candidatures',
+    path: '/candidatures',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCvRoute = AuthenticatedCvRouteImport.update({
   id: '/cv',
   path: '/cv',
@@ -50,6 +57,7 @@ const AuthenticatedTableauDeBordRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/candidatures': typeof AuthenticatedCandidaturesRoute
   '/cv': typeof AuthenticatedCvRoute
   '/offres': typeof AuthenticatedOffresRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
@@ -57,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/candidatures': typeof AuthenticatedCandidaturesRoute
   '/cv': typeof AuthenticatedCvRoute
   '/offres': typeof AuthenticatedOffresRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
@@ -66,20 +75,23 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/candidatures': typeof AuthenticatedCandidaturesRoute
   '/_authenticated/cv': typeof AuthenticatedCvRoute
   '/_authenticated/offres': typeof AuthenticatedOffresRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/cv' | '/offres' | '/tableau-de-bord'
+  fullPaths:
+    '/' | '/auth' | '/candidatures' | '/cv' | '/offres' | '/tableau-de-bord'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/cv' | '/offres' | '/tableau-de-bord'
+  to: '/' | '/auth' | '/candidatures' | '/cv' | '/offres' | '/tableau-de-bord'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/candidatures'
     | '/_authenticated/cv'
     | '/_authenticated/offres'
     | '/_authenticated/tableau-de-bord'
@@ -114,6 +126,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/candidatures': {
+      id: '/_authenticated/candidatures'
+      path: '/candidatures'
+      fullPath: '/candidatures'
+      preLoaderRoute: typeof AuthenticatedCandidaturesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/cv': {
       id: '/_authenticated/cv'
       path: '/cv'
@@ -139,12 +158,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCandidaturesRoute: typeof AuthenticatedCandidaturesRoute
   AuthenticatedCvRoute: typeof AuthenticatedCvRoute
   AuthenticatedOffresRoute: typeof AuthenticatedOffresRoute
   AuthenticatedTableauDeBordRoute: typeof AuthenticatedTableauDeBordRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCandidaturesRoute: AuthenticatedCandidaturesRoute,
   AuthenticatedCvRoute: AuthenticatedCvRoute,
   AuthenticatedOffresRoute: AuthenticatedOffresRoute,
   AuthenticatedTableauDeBordRoute: AuthenticatedTableauDeBordRoute,
