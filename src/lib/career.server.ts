@@ -34,9 +34,9 @@ const ANALYSIS_SCHEMA = `{
 }`;
 
 export async function analyzeCv(input: {
-  text?: string;
-  fileName?: string;
-  fileDataUrl?: string;
+  text?: string | undefined;
+  fileName?: string | undefined;
+  fileDataUrl?: string | undefined;
   profile: ProfileInput | null;
 }): Promise<CvAnalysis> {
   const instruction = `Analyse ce CV en profondeur pour un candidat au profil suivant :
