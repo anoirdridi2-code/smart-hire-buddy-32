@@ -17,6 +17,7 @@ import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedCvRouteImport } from './routes/_authenticated/cv'
 import { Route as AuthenticatedEntretienRouteImport } from './routes/_authenticated/entretien'
 import { Route as AuthenticatedOffresRouteImport } from './routes/_authenticated/offres'
+import { Route as AuthenticatedProfilRouteImport } from './routes/_authenticated/profil'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
 
 const IndexRoute = IndexRouteImport.update({
@@ -59,6 +60,11 @@ const AuthenticatedOffresRoute = AuthenticatedOffresRouteImport.update({
   path: '/offres',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProfilRoute = AuthenticatedProfilRouteImport.update({
+  id: '/profil',
+  path: '/profil',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTableauDeBordRoute =
   AuthenticatedTableauDeBordRouteImport.update({
     id: '/tableau-de-bord',
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/cv': typeof AuthenticatedCvRoute
   '/entretien': typeof AuthenticatedEntretienRoute
   '/offres': typeof AuthenticatedOffresRoute
+  '/profil': typeof AuthenticatedProfilRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
 }
 export interface FileRoutesByTo {
@@ -84,6 +91,7 @@ export interface FileRoutesByTo {
   '/cv': typeof AuthenticatedCvRoute
   '/entretien': typeof AuthenticatedEntretienRoute
   '/offres': typeof AuthenticatedOffresRoute
+  '/profil': typeof AuthenticatedProfilRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
 }
 export interface FileRoutesById {
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   '/_authenticated/cv': typeof AuthenticatedCvRoute
   '/_authenticated/entretien': typeof AuthenticatedEntretienRoute
   '/_authenticated/offres': typeof AuthenticatedOffresRoute
+  '/_authenticated/profil': typeof AuthenticatedProfilRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
 }
 export interface FileRouteTypes {
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/cv'
     | '/entretien'
     | '/offres'
+    | '/profil'
     | '/tableau-de-bord'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/cv'
     | '/entretien'
     | '/offres'
+    | '/profil'
     | '/tableau-de-bord'
   id:
     | '__root__'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cv'
     | '/_authenticated/entretien'
     | '/_authenticated/offres'
+    | '/_authenticated/profil'
     | '/_authenticated/tableau-de-bord'
   fileRoutesById: FileRoutesById
 }
@@ -196,6 +208,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOffresRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/profil': {
+      id: '/_authenticated/profil'
+      path: '/profil'
+      fullPath: '/profil'
+      preLoaderRoute: typeof AuthenticatedProfilRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tableau-de-bord': {
       id: '/_authenticated/tableau-de-bord'
       path: '/tableau-de-bord'
@@ -212,6 +231,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCvRoute: typeof AuthenticatedCvRoute
   AuthenticatedEntretienRoute: typeof AuthenticatedEntretienRoute
   AuthenticatedOffresRoute: typeof AuthenticatedOffresRoute
+  AuthenticatedProfilRoute: typeof AuthenticatedProfilRoute
   AuthenticatedTableauDeBordRoute: typeof AuthenticatedTableauDeBordRoute
 }
 
@@ -221,6 +241,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCvRoute: AuthenticatedCvRoute,
   AuthenticatedEntretienRoute: AuthenticatedEntretienRoute,
   AuthenticatedOffresRoute: AuthenticatedOffresRoute,
+  AuthenticatedProfilRoute: AuthenticatedProfilRoute,
   AuthenticatedTableauDeBordRoute: AuthenticatedTableauDeBordRoute,
 }
 
