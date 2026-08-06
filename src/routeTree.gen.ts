@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedCandidaturesRouteImport } from './routes/_authenticated/candidatures'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
 import { Route as AuthenticatedCvRouteImport } from './routes/_authenticated/cv'
+import { Route as AuthenticatedEntretienRouteImport } from './routes/_authenticated/entretien'
 import { Route as AuthenticatedOffresRouteImport } from './routes/_authenticated/offres'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
 
@@ -48,6 +49,11 @@ const AuthenticatedCvRoute = AuthenticatedCvRouteImport.update({
   path: '/cv',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEntretienRoute = AuthenticatedEntretienRouteImport.update({
+  id: '/entretien',
+  path: '/entretien',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedOffresRoute = AuthenticatedOffresRouteImport.update({
   id: '/offres',
   path: '/offres',
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/candidatures': typeof AuthenticatedCandidaturesRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/cv': typeof AuthenticatedCvRoute
+  '/entretien': typeof AuthenticatedEntretienRoute
   '/offres': typeof AuthenticatedOffresRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
 }
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/candidatures': typeof AuthenticatedCandidaturesRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/cv': typeof AuthenticatedCvRoute
+  '/entretien': typeof AuthenticatedEntretienRoute
   '/offres': typeof AuthenticatedOffresRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
 }
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/_authenticated/candidatures': typeof AuthenticatedCandidaturesRoute
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
   '/_authenticated/cv': typeof AuthenticatedCvRoute
+  '/_authenticated/entretien': typeof AuthenticatedEntretienRoute
   '/_authenticated/offres': typeof AuthenticatedOffresRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
 }
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/candidatures'
     | '/coach'
     | '/cv'
+    | '/entretien'
     | '/offres'
     | '/tableau-de-bord'
   fileRoutesByTo: FileRoutesByTo
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/candidatures'
     | '/coach'
     | '/cv'
+    | '/entretien'
     | '/offres'
     | '/tableau-de-bord'
   id:
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/_authenticated/candidatures'
     | '/_authenticated/coach'
     | '/_authenticated/cv'
+    | '/_authenticated/entretien'
     | '/_authenticated/offres'
     | '/_authenticated/tableau-de-bord'
   fileRoutesById: FileRoutesById
@@ -170,6 +182,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCvRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/entretien': {
+      id: '/_authenticated/entretien'
+      path: '/entretien'
+      fullPath: '/entretien'
+      preLoaderRoute: typeof AuthenticatedEntretienRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/offres': {
       id: '/_authenticated/offres'
       path: '/offres'
@@ -191,6 +210,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCandidaturesRoute: typeof AuthenticatedCandidaturesRoute
   AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
   AuthenticatedCvRoute: typeof AuthenticatedCvRoute
+  AuthenticatedEntretienRoute: typeof AuthenticatedEntretienRoute
   AuthenticatedOffresRoute: typeof AuthenticatedOffresRoute
   AuthenticatedTableauDeBordRoute: typeof AuthenticatedTableauDeBordRoute
 }
@@ -199,6 +219,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCandidaturesRoute: AuthenticatedCandidaturesRoute,
   AuthenticatedCoachRoute: AuthenticatedCoachRoute,
   AuthenticatedCvRoute: AuthenticatedCvRoute,
+  AuthenticatedEntretienRoute: AuthenticatedEntretienRoute,
   AuthenticatedOffresRoute: AuthenticatedOffresRoute,
   AuthenticatedTableauDeBordRoute: AuthenticatedTableauDeBordRoute,
 }

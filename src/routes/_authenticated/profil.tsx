@@ -1,0 +1,125 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { AppShell } from "@/components/AppShell";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { useProfile, useRefresh } from "@/lib/queries";
+
+export const Route = createFileRoute("/_authenticated/profil")({
+  head: () => ({
+    meta: [
+      { title: "Mon profil candidat — Karriera" },
+      {
+        name: "description",
+        content:
+          "Renseignez votre domaine, expérience, pays cibles, salaire souhaité et langues pour affiner l'IA.",
+      },
+      { property: "og:title", content: "Mon profil candidat — Karriera" },
+      {
+        property: "og:description",
+        content: "Vos préférences guident l'analyse du CV et le matching des offres.",
+      },
+    ],
+  }),
+  component: ProfilePage,
+});
+
+function ProfilePage() {
+  const { data: profile } = useProfile();
+  const refresh = useRefresh();
+  const [form, setForm] = useState({
+    full_name: "",
+    domain: "",
+    experience_years: "",
+    countries: "",
+    city: "",
+    desired_salary: "",
+    languages: "",
+    contract_type: "",
+  });
+
+  useEffect(() => {
+    if (!profile) return;
+    setForm({
+      full_name: profile.full_name ?? "",
+      domain: profile.domain ?? "",
+      experience_years: profile.experience_years?.toString() ?? "",
+      countries: (profile.countries ?? []).join(", "),
+      city: profile.city ?? "",
+      desired_salary: profile.desired_salary ?? "",
+      languages: (profile.languages ?? []).join(", "),
+      contract_type: profile.contract_type ?? "",
+    });
+  }, [profile]);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    const { data: userData } = await supabase.auth.getUser();
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        full_name: form.full_name.trim().slice(0, 120) || null,
+        domain: form.domain.trim().slice(0, 80) || null,
+        experience_years: form.experience_years ? Number(form.experience_years) : null,
+        countries: form.countries
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean),
+        city: form.city.trim().slice(0, 80) || null,
+        desired_salary: form.desired_salary.trim().slice(0, 80) || null,
+        languages: form.languages
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean),
+        contract_type: form.contract_type.trim().slice(0, 40) || null,
+      })
+      .eq("id", userData.user!.id);
+    if (error) {
+      toast.error("Enregistrement impossible.");
+      return;
+    }
+    refresh(["profile"]);
+    toast.success("Profil enregistré.");
+  }
+
+  const fields: [keyof typeof form, string, string][] = [
+    ["full_name", "Nom complet", "Amine Ben Salah"],
+    ["domain", "Domaine", "Informatique, Mécanique, Électrique…"],
+    ["experience_years", "Années d'expérience", "3"],
+    ["countries", "Pays souhaités", "Tunisie, France, Canada"],
+    ["city", "Ville", "Tunis"],
+    ["desired_salary", "Salaire souhaité", "2500 € / mois"],
+    ["languages", "Langues", "Français, Anglais, Allemand"],
+    ["contract_type", "Type de contrat", "CDI, Stage, PFE"],
+  ];
+
+  return (
+    <AppShell title="Profil" description="Ces informations affinent l'analyse et le matching">
+      <Card className="panel max-w-2xl">
+        <CardContent className="p-6">
+          <form onSubmit={save} className="grid gap-4 sm:grid-cols-2">
+            {fields.map(([key, label, placeholder]) => (
+              <div key={key} className="space-y-2">
+                <Label htmlFor={key}>{label}</Label>
+                <Input
+                  id={key}
+                  value={form[key]}
+                  placeholder={placeholder}
+                  maxLength={160}
+                  onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                />
+              </div>
+            ))}
+            <Button type="submit" className="sm:col-span-2">
+              Enregistrer
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </AppShell>
+  );
+}
