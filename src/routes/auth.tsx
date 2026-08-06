@@ -50,18 +50,27 @@ function AuthPage() {
   async function signIn(e: React.FormEvent) {
     e.preventDefault();
     const parsed = credentials.safeParse({ email, password });
-    if (!parsed.success) return toast.error(parsed.error.issues[0]!.message);
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]!.message);
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword(parsed.data);
     setLoading(false);
-    if (error) return toast.error("Connexion impossible : identifiants incorrects.");
+    if (error) {
+      toast.error("Connexion impossible : identifiants incorrects.");
+      return;
+    }
     navigate({ to: "/tableau-de-bord", replace: true });
   }
 
   async function signUp(e: React.FormEvent) {
     e.preventDefault();
     const parsed = credentials.safeParse({ email, password });
-    if (!parsed.success) return toast.error(parsed.error.issues[0]!.message);
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]!.message);
+      return;
+    }
     setLoading(true);
     const { data, error } = await supabase.auth.signUp({
       ...parsed.data,
@@ -71,7 +80,10 @@ function AuthPage() {
       },
     });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     if (!data.session) {
       setPendingEmail(true);
       return;
@@ -83,7 +95,10 @@ function AuthPage() {
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
-    if (result.error) return toast.error("Connexion Google impossible.");
+    if (result.error) {
+      toast.error("Connexion Google impossible.");
+      return;
+    }
     if (result.redirected) return;
     navigate({ to: "/tableau-de-bord", replace: true });
   }
