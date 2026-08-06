@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedCandidaturesRouteImport } from './routes/_authenticated/candidatures'
+import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
 import { Route as AuthenticatedCvRouteImport } from './routes/_authenticated/cv'
 import { Route as AuthenticatedOffresRouteImport } from './routes/_authenticated/offres'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
@@ -37,6 +38,11 @@ const AuthenticatedCandidaturesRoute =
     path: '/candidatures',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCoachRoute = AuthenticatedCoachRouteImport.update({
+  id: '/coach',
+  path: '/coach',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCvRoute = AuthenticatedCvRouteImport.update({
   id: '/cv',
   path: '/cv',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/candidatures': typeof AuthenticatedCandidaturesRoute
+  '/coach': typeof AuthenticatedCoachRoute
   '/cv': typeof AuthenticatedCvRoute
   '/offres': typeof AuthenticatedOffresRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/candidatures': typeof AuthenticatedCandidaturesRoute
+  '/coach': typeof AuthenticatedCoachRoute
   '/cv': typeof AuthenticatedCvRoute
   '/offres': typeof AuthenticatedOffresRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/candidatures': typeof AuthenticatedCandidaturesRoute
+  '/_authenticated/coach': typeof AuthenticatedCoachRoute
   '/_authenticated/cv': typeof AuthenticatedCvRoute
   '/_authenticated/offres': typeof AuthenticatedOffresRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
@@ -83,15 +92,29 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/candidatures' | '/cv' | '/offres' | '/tableau-de-bord'
+    | '/'
+    | '/auth'
+    | '/candidatures'
+    | '/coach'
+    | '/cv'
+    | '/offres'
+    | '/tableau-de-bord'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/candidatures' | '/cv' | '/offres' | '/tableau-de-bord'
+  to:
+    | '/'
+    | '/auth'
+    | '/candidatures'
+    | '/coach'
+    | '/cv'
+    | '/offres'
+    | '/tableau-de-bord'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/candidatures'
+    | '/_authenticated/coach'
     | '/_authenticated/cv'
     | '/_authenticated/offres'
     | '/_authenticated/tableau-de-bord'
@@ -133,6 +156,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCandidaturesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/coach': {
+      id: '/_authenticated/coach'
+      path: '/coach'
+      fullPath: '/coach'
+      preLoaderRoute: typeof AuthenticatedCoachRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/cv': {
       id: '/_authenticated/cv'
       path: '/cv'
@@ -159,6 +189,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCandidaturesRoute: typeof AuthenticatedCandidaturesRoute
+  AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
   AuthenticatedCvRoute: typeof AuthenticatedCvRoute
   AuthenticatedOffresRoute: typeof AuthenticatedOffresRoute
   AuthenticatedTableauDeBordRoute: typeof AuthenticatedTableauDeBordRoute
@@ -166,6 +197,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCandidaturesRoute: AuthenticatedCandidaturesRoute,
+  AuthenticatedCoachRoute: AuthenticatedCoachRoute,
   AuthenticatedCvRoute: AuthenticatedCvRoute,
   AuthenticatedOffresRoute: AuthenticatedOffresRoute,
   AuthenticatedTableauDeBordRoute: AuthenticatedTableauDeBordRoute,
