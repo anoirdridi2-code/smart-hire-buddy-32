@@ -125,7 +125,6 @@ function JobsPage() {
     const { error } = await supabase.from("applications").insert({
       user_id: userData.user!.id,
       job_id: jobId,
-      cv_id: cv?.id ?? null,
       status: "applied",
     });
     if (error) {
