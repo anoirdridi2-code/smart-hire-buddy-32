@@ -3,6 +3,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import {
   analyzeCv,
+  anonymizeCvText,
+  draftJobPosting,
+  missionRelevance,
+  rankCandidate,
+  translateDocument,
   coachReply,
   evaluateAnswer,
   generateDocument,
@@ -301,3 +306,288 @@ export const evaluateAnswerFn = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }) => evaluateAnswer(data));
+
+export const claimRoleFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ role: z.enum(["candidate", "recruiter"]) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("user_roles")
+      .insert({ user_id: userId, role: data.role });
+    if (error && !error.message.includes("duplicate")) throw new Error(error.message);
+    return { role: data.role };
+  });
+
+export const draftJobFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        brief: z.string().trim().min(20).max(8000),
+        company: z.string().trim().min(1).max(160),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => draftJobPosting(data));
+
+export const publishJobFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        jobId: z.string().uuid().nullable().optional(),
+        title: z.string().trim().min(2).max(160),
+        company: z.string().trim().min(1).max(160),
+        location: z.string().max(160).optional(),
+        country: z.string().max(80).optional(),
+        contract_type: z.string().max(60).optional(),
+        level: z.string().max(60).optional(),
+        remote: z.string().max(40).optional(),
+        required_language: z.string().max(80).optional(),
+        salary: z.string().max(80).optional(),
+        salary_min: z.number().int().min(0).max(10000000).optional(),
+        salary_currency: z.string().max(10).optional(),
+        experience_min: z.number().int().min(0).max(60).optional(),
+        visa_sponsorship: z.boolean().optional(),
+        skills: z.array(z.string().max(60)).max(30).optional(),
+        description: z.string().trim().min(20).max(20000),
+        is_published: z.boolean(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { jobId, ...fields } = data;
+    const payload = {
+      ...fields,
+      user_id: userId,
+      is_demo: false,
+      source: "Espace recruteur",
+      posted_at: new Date().toISOString().slice(0, 10),
+    };
+    if (jobId) {
+      const { error } = await supabase
+        .from("jobs")
+        .update(payload)
+        .eq("id", jobId)
+        .eq("user_id", userId);
+      if (error) throw new Error(error.message);
+      return { jobId };
+    }
+    const { data: inserted, error } = await supabase
+      .from("jobs")
+      .insert(payload)
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { jobId: inserted.id };
+  });
+
+export const rankApplicationFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ applicationId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: application, error } = await supabase
+      .from("applications")
+      .select("id, user_id, cv_id, job_id, jobs(id, user_id, title, company, description, skills, level)")
+      .eq("id", data.applicationId)
+      .single();
+    if (error || !application) throw new Error("Candidature introuvable.");
+    const job = application.jobs as unknown as {
+      user_id: string;
+      title: string;
+      company: string;
+      description: string | null;
+      skills: string[] | null;
+      level: string | null;
+    } | null;
+    if (!job || job.user_id !== userId) throw new Error("Accès refusé.");
+
+    let cvText = "";
+    let analysis: CvAnalysis | null = null;
+    if (application.cv_id) {
+      const { data: cv } = await supabase
+        .from("cvs")
+        .select("raw_text, analysis")
+        .eq("id", application.cv_id)
+        .maybeSingle();
+      cvText = cv?.raw_text ?? "";
+      analysis = (cv?.analysis as unknown as CvAnalysis) ?? null;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select(
+        "full_name, domain, experience_years, countries, city, desired_salary, languages, contract_type",
+      )
+      .eq("id", application.user_id)
+      .maybeSingle();
+
+    const ranking = await rankCandidate({
+      job: { ...job, description: job.description ?? "" },
+      cvText,
+      analysis,
+      profile: (profile ?? null) as ProfileInput | null,
+    });
+
+    await supabase
+      .from("applications")
+      .update({
+        match_score: Math.round(ranking.score ?? 0),
+        match_breakdown: ranking.breakdown,
+        match_reasoning: ranking.summary,
+      })
+      .eq("id", data.applicationId);
+
+    return ranking;
+  });
+
+export const runAgentFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ missionId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: mission, error } = await supabase
+      .from("agent_missions")
+      .select("*")
+      .eq("id", data.missionId)
+      .eq("user_id", userId)
+      .single();
+    if (error || !mission) throw new Error("Mission introuvable.");
+
+    let analysis: CvAnalysis | null = null;
+    if (mission.cv_id) {
+      const { data: cv } = await supabase
+        .from("cvs")
+        .select("analysis")
+        .eq("id", mission.cv_id)
+        .maybeSingle();
+      analysis = (cv?.analysis as unknown as CvAnalysis) ?? null;
+    }
+
+    const { data: existing } = await supabase
+      .from("agent_alerts")
+      .select("job_id")
+      .eq("mission_id", mission.id);
+    const seen = new Set((existing ?? []).map((a) => a.job_id));
+
+    const { data: jobs } = await supabase
+      .from("jobs")
+      .select("id, title, company, location, country, description")
+      .order("posted_at", { ascending: false })
+      .limit(40);
+
+    const candidates = (jobs ?? []).filter((j) => !seen.has(j.id)).slice(0, 10);
+    let created = 0;
+
+    for (const job of candidates) {
+      const result = await missionRelevance({
+        mission: {
+          title: mission.title,
+          target_role: mission.target_role,
+          countries: mission.countries ?? [],
+          cities: mission.cities ?? [],
+          remote_only: mission.remote_only,
+          visa_required: mission.visa_required,
+          salary_min: mission.salary_min,
+          languages: mission.languages ?? [],
+          contract_type: mission.contract_type,
+        },
+        job: { ...job, description: job.description ?? "" },
+        analysis,
+      });
+      const score = Math.round(result.score ?? 0);
+      if (score >= (mission.min_score ?? 80)) {
+        const { error: insertError } = await supabase.from("agent_alerts").insert({
+          user_id: userId,
+          mission_id: mission.id,
+          job_id: job.id,
+          score,
+          message: result.message,
+        });
+        if (!insertError) created += 1;
+      }
+    }
+
+    await supabase
+      .from("agent_missions")
+      .update({ last_run_at: new Date().toISOString() })
+      .eq("id", mission.id);
+
+    return { scanned: candidates.length, created };
+  });
+
+export const translateDocFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({ documentId: z.string().uuid(), language: z.enum(["fr", "en", "de"]) })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: doc } = await supabase
+      .from("documents")
+      .select("cv_id, job_id, doc_type, title, content")
+      .eq("id", data.documentId)
+      .maybeSingle();
+    if (!doc) throw new Error("Document introuvable.");
+
+    const content = await translateDocument({ content: doc.content, language: data.language });
+    const { data: created, error } = await supabase
+      .from("documents")
+      .insert({
+        user_id: userId,
+        cv_id: doc.cv_id,
+        job_id: doc.job_id,
+        doc_type: doc.doc_type,
+        language: data.language,
+        title: doc.title,
+        content,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return created;
+  });
+
+export const anonymizeCvFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ cvId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: cv } = await supabase
+      .from("cvs")
+      .select("file_name, raw_text, analysis, global_score, ats_score, readability_score")
+      .eq("id", data.cvId)
+      .maybeSingle();
+    if (!cv?.raw_text) throw new Error("Ce CV n'a pas de texte exploitable.");
+
+    const content = await anonymizeCvText({ cvText: cv.raw_text });
+    const { data: created, error } = await supabase
+      .from("cvs")
+      .insert({
+        user_id: userId,
+        file_name: `Anonyme — ${cv.file_name}`,
+        label: "CV anonyme",
+        raw_text: content,
+        analysis: cv.analysis,
+        global_score: cv.global_score,
+        ats_score: cv.ats_score,
+        readability_score: cv.readability_score,
+        is_anonymous: true,
+        source_cv_id: data.cvId,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return created;
+  });
