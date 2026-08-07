@@ -14,35 +14,179 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_alerts: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          job_id: string | null
+          message: string
+          mission_id: string | null
+          score: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          job_id?: string | null
+          message: string
+          mission_id?: string | null
+          score?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          job_id?: string | null
+          message?: string
+          mission_id?: string | null
+          score?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_alerts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_alerts_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "agent_missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_missions: {
+        Row: {
+          cities: string[]
+          contract_type: string | null
+          countries: string[]
+          created_at: string
+          cv_id: string | null
+          id: string
+          is_active: boolean
+          languages: string[]
+          last_run_at: string | null
+          min_score: number
+          remote_only: boolean
+          salary_min: number | null
+          target_role: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          visa_required: boolean
+        }
+        Insert: {
+          cities?: string[]
+          contract_type?: string | null
+          countries?: string[]
+          created_at?: string
+          cv_id?: string | null
+          id?: string
+          is_active?: boolean
+          languages?: string[]
+          last_run_at?: string | null
+          min_score?: number
+          remote_only?: boolean
+          salary_min?: number | null
+          target_role?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          visa_required?: boolean
+        }
+        Update: {
+          cities?: string[]
+          contract_type?: string | null
+          countries?: string[]
+          created_at?: string
+          cv_id?: string | null
+          id?: string
+          is_active?: boolean
+          languages?: string[]
+          last_run_at?: string | null
+          min_score?: number
+          remote_only?: boolean
+          salary_min?: number | null
+          target_role?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          visa_required?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_missions_cv_id_fkey"
+            columns: ["cv_id"]
+            isOneToOne: false
+            referencedRelation: "cvs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           applied_at: string
+          cv_id: string | null
+          follow_up_at: string | null
           id: string
           job_id: string
+          match_breakdown: Json | null
+          match_reasoning: string | null
+          match_score: number | null
           notes: string | null
+          recruiter_note: string | null
+          stage: string
           status: string
           updated_at: string
           user_id: string
         }
         Insert: {
           applied_at?: string
+          cv_id?: string | null
+          follow_up_at?: string | null
           id?: string
           job_id: string
+          match_breakdown?: Json | null
+          match_reasoning?: string | null
+          match_score?: number | null
           notes?: string | null
+          recruiter_note?: string | null
+          stage?: string
           status?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           applied_at?: string
+          cv_id?: string | null
+          follow_up_at?: string | null
           id?: string
           job_id?: string
+          match_breakdown?: Json | null
+          match_reasoning?: string | null
+          match_score?: number | null
           notes?: string | null
+          recruiter_note?: string | null
+          stage?: string
           status?: string
           updated_at?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "applications_cv_id_fkey"
+            columns: ["cv_id"]
+            isOneToOne: false
+            referencedRelation: "cvs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "applications_job_id_fkey"
             columns: ["job_id"]
@@ -52,44 +196,130 @@ export type Database = {
           },
         ]
       }
+      companies: {
+        Row: {
+          city: string | null
+          country: string | null
+          created_at: string
+          culture: string | null
+          description: string | null
+          id: string
+          industry: string | null
+          name: string
+          owner_id: string | null
+          rating: number | null
+          salary_range: string | null
+          size: string | null
+          technologies: string[]
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          culture?: string | null
+          description?: string | null
+          id?: string
+          industry?: string | null
+          name: string
+          owner_id?: string | null
+          rating?: number | null
+          salary_range?: string | null
+          size?: string | null
+          technologies?: string[]
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          culture?: string | null
+          description?: string | null
+          id?: string
+          industry?: string | null
+          name?: string
+          owner_id?: string | null
+          rating?: number | null
+          salary_range?: string | null
+          size?: string | null
+          technologies?: string[]
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       cvs: {
         Row: {
           analysis: Json | null
+          ats_breakdown: Json | null
           ats_score: number | null
           created_at: string
           file_name: string
           file_path: string | null
           global_score: number | null
           id: string
+          is_anonymous: boolean
+          is_primary: boolean
+          label: string | null
+          language: string
+          learning_plan: Json | null
+          prediction: Json | null
           raw_text: string | null
           readability_score: number | null
+          source_cv_id: string | null
           user_id: string
         }
         Insert: {
           analysis?: Json | null
+          ats_breakdown?: Json | null
           ats_score?: number | null
           created_at?: string
           file_name: string
           file_path?: string | null
           global_score?: number | null
           id?: string
+          is_anonymous?: boolean
+          is_primary?: boolean
+          label?: string | null
+          language?: string
+          learning_plan?: Json | null
+          prediction?: Json | null
           raw_text?: string | null
           readability_score?: number | null
+          source_cv_id?: string | null
           user_id: string
         }
         Update: {
           analysis?: Json | null
+          ats_breakdown?: Json | null
           ats_score?: number | null
           created_at?: string
           file_name?: string
           file_path?: string | null
           global_score?: number | null
           id?: string
+          is_anonymous?: boolean
+          is_primary?: boolean
+          label?: string | null
+          language?: string
+          learning_plan?: Json | null
+          prediction?: Json | null
           raw_text?: string | null
           readability_score?: number | null
+          source_cv_id?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cvs_source_cv_id_fkey"
+            columns: ["source_cv_id"]
+            isOneToOne: false
+            referencedRelation: "cvs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       documents: {
         Row: {
@@ -145,56 +375,94 @@ export type Database = {
       jobs: {
         Row: {
           company: string
+          company_id: string | null
           contract_type: string | null
           country: string | null
           created_at: string
+          deadline: string | null
           description: string | null
+          experience_min: number | null
           id: string
           is_demo: boolean
+          is_published: boolean
           level: string | null
           location: string | null
           posted_at: string | null
+          remote: string | null
+          required_language: string | null
           salary: string | null
+          salary_currency: string | null
+          salary_min: number | null
+          skills: string[]
           source: string | null
           title: string
           url: string | null
           user_id: string | null
+          visa_sponsorship: boolean
         }
         Insert: {
           company: string
+          company_id?: string | null
           contract_type?: string | null
           country?: string | null
           created_at?: string
+          deadline?: string | null
           description?: string | null
+          experience_min?: number | null
           id?: string
           is_demo?: boolean
+          is_published?: boolean
           level?: string | null
           location?: string | null
           posted_at?: string | null
+          remote?: string | null
+          required_language?: string | null
           salary?: string | null
+          salary_currency?: string | null
+          salary_min?: number | null
+          skills?: string[]
           source?: string | null
           title: string
           url?: string | null
           user_id?: string | null
+          visa_sponsorship?: boolean
         }
         Update: {
           company?: string
+          company_id?: string | null
           contract_type?: string | null
           country?: string | null
           created_at?: string
+          deadline?: string | null
           description?: string | null
+          experience_min?: number | null
           id?: string
           is_demo?: boolean
+          is_published?: boolean
           level?: string | null
           location?: string | null
           posted_at?: string | null
+          remote?: string | null
+          required_language?: string | null
           salary?: string | null
+          salary_currency?: string | null
+          salary_min?: number | null
+          skills?: string[]
           source?: string | null
           title?: string
           url?: string | null
           user_id?: string | null
+          visa_sponsorship?: boolean
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       matches: {
         Row: {
@@ -289,15 +557,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "candidate" | "recruiter" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -424,6 +719,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["candidate", "recruiter", "admin"],
+    },
   },
 } as const
