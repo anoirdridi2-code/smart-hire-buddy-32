@@ -21,6 +21,7 @@ import { Route as AuthenticatedEntretienRouteImport } from './routes/_authentica
 import { Route as AuthenticatedOffresRouteImport } from './routes/_authenticated/offres'
 import { Route as AuthenticatedProfilRouteImport } from './routes/_authenticated/profil'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
+import { Route as AuthenticatedRecruteurOffresRouteImport } from './routes/_authenticated/recruteur/offres'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -84,6 +85,12 @@ const AuthenticatedTableauDeBordRoute =
     path: '/tableau-de-bord',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedRecruteurOffresRoute =
+  AuthenticatedRecruteurOffresRouteImport.update({
+    id: '/recruteur/offres',
+    path: '/recruteur/offres',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/offres': typeof AuthenticatedOffresRoute
   '/profil': typeof AuthenticatedProfilRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/recruteur/offres': typeof AuthenticatedRecruteurOffresRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,6 +118,7 @@ export interface FileRoutesByTo {
   '/offres': typeof AuthenticatedOffresRoute
   '/profil': typeof AuthenticatedProfilRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/recruteur/offres': typeof AuthenticatedRecruteurOffresRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +134,7 @@ export interface FileRoutesById {
   '/_authenticated/offres': typeof AuthenticatedOffresRoute
   '/_authenticated/profil': typeof AuthenticatedProfilRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/_authenticated/recruteur/offres': typeof AuthenticatedRecruteurOffresRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/offres'
     | '/profil'
     | '/tableau-de-bord'
+    | '/recruteur/offres'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/offres'
     | '/profil'
     | '/tableau-de-bord'
+    | '/recruteur/offres'
   id:
     | '__root__'
     | '/'
@@ -167,6 +179,7 @@ export interface FileRouteTypes {
     | '/_authenticated/offres'
     | '/_authenticated/profil'
     | '/_authenticated/tableau-de-bord'
+    | '/_authenticated/recruteur/offres'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -261,6 +274,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTableauDeBordRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/recruteur/offres': {
+      id: '/_authenticated/recruteur/offres'
+      path: '/recruteur/offres'
+      fullPath: '/recruteur/offres'
+      preLoaderRoute: typeof AuthenticatedRecruteurOffresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -274,6 +294,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOffresRoute: typeof AuthenticatedOffresRoute
   AuthenticatedProfilRoute: typeof AuthenticatedProfilRoute
   AuthenticatedTableauDeBordRoute: typeof AuthenticatedTableauDeBordRoute
+  AuthenticatedRecruteurOffresRoute: typeof AuthenticatedRecruteurOffresRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -286,6 +307,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOffresRoute: AuthenticatedOffresRoute,
   AuthenticatedProfilRoute: AuthenticatedProfilRoute,
   AuthenticatedTableauDeBordRoute: AuthenticatedTableauDeBordRoute,
+  AuthenticatedRecruteurOffresRoute: AuthenticatedRecruteurOffresRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
