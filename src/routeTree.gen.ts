@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedAgentRouteImport } from './routes/_authenticated/agent'
 import { Route as AuthenticatedCandidaturesRouteImport } from './routes/_authenticated/candidatures'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
 import { Route as AuthenticatedCvRouteImport } from './routes/_authenticated/cv'
@@ -33,6 +34,11 @@ const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAgentRoute = AuthenticatedAgentRouteImport.update({
+  id: '/agent',
+  path: '/agent',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCandidaturesRoute =
   AuthenticatedCandidaturesRouteImport.update({
@@ -75,6 +81,7 @@ const AuthenticatedTableauDeBordRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/agent': typeof AuthenticatedAgentRoute
   '/candidatures': typeof AuthenticatedCandidaturesRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/cv': typeof AuthenticatedCvRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/agent': typeof AuthenticatedAgentRoute
   '/candidatures': typeof AuthenticatedCandidaturesRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/cv': typeof AuthenticatedCvRoute
@@ -99,6 +107,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/agent': typeof AuthenticatedAgentRoute
   '/_authenticated/candidatures': typeof AuthenticatedCandidaturesRoute
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
   '/_authenticated/cv': typeof AuthenticatedCvRoute
@@ -112,6 +121,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/agent'
     | '/candidatures'
     | '/coach'
     | '/cv'
@@ -123,6 +133,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/agent'
     | '/candidatures'
     | '/coach'
     | '/cv'
@@ -135,6 +146,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/agent'
     | '/_authenticated/candidatures'
     | '/_authenticated/coach'
     | '/_authenticated/cv'
@@ -172,6 +184,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/agent': {
+      id: '/_authenticated/agent'
+      path: '/agent'
+      fullPath: '/agent'
+      preLoaderRoute: typeof AuthenticatedAgentRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/candidatures': {
       id: '/_authenticated/candidatures'
@@ -226,6 +245,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAgentRoute: typeof AuthenticatedAgentRoute
   AuthenticatedCandidaturesRoute: typeof AuthenticatedCandidaturesRoute
   AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
   AuthenticatedCvRoute: typeof AuthenticatedCvRoute
@@ -236,6 +256,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAgentRoute: AuthenticatedAgentRoute,
   AuthenticatedCandidaturesRoute: AuthenticatedCandidaturesRoute,
   AuthenticatedCoachRoute: AuthenticatedCoachRoute,
   AuthenticatedCvRoute: AuthenticatedCvRoute,
@@ -256,13 +277,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
