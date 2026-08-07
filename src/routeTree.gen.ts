@@ -22,6 +22,7 @@ import { Route as AuthenticatedOffresRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedProfilRouteImport } from './routes/_authenticated/profil'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
 import { Route as AuthenticatedRecruteurOffresRouteImport } from './routes/_authenticated/recruteur/offres'
+import { Route as AuthenticatedRecruteurPipelineRouteImport } from './routes/_authenticated/recruteur/pipeline'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -91,6 +92,12 @@ const AuthenticatedRecruteurOffresRoute =
     path: '/recruteur/offres',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedRecruteurPipelineRoute =
+  AuthenticatedRecruteurPipelineRouteImport.update({
+    id: '/recruteur/pipeline',
+    path: '/recruteur/pipeline',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -105,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/profil': typeof AuthenticatedProfilRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/recruteur/offres': typeof AuthenticatedRecruteurOffresRoute
+  '/recruteur/pipeline': typeof AuthenticatedRecruteurPipelineRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -119,6 +127,7 @@ export interface FileRoutesByTo {
   '/profil': typeof AuthenticatedProfilRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/recruteur/offres': typeof AuthenticatedRecruteurOffresRoute
+  '/recruteur/pipeline': typeof AuthenticatedRecruteurPipelineRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -135,6 +144,7 @@ export interface FileRoutesById {
   '/_authenticated/profil': typeof AuthenticatedProfilRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/_authenticated/recruteur/offres': typeof AuthenticatedRecruteurOffresRoute
+  '/_authenticated/recruteur/pipeline': typeof AuthenticatedRecruteurPipelineRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/profil'
     | '/tableau-de-bord'
     | '/recruteur/offres'
+    | '/recruteur/pipeline'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/profil'
     | '/tableau-de-bord'
     | '/recruteur/offres'
+    | '/recruteur/pipeline'
   id:
     | '__root__'
     | '/'
@@ -180,6 +192,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profil'
     | '/_authenticated/tableau-de-bord'
     | '/_authenticated/recruteur/offres'
+    | '/_authenticated/recruteur/pipeline'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -281,6 +294,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecruteurOffresRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/recruteur/pipeline': {
+      id: '/_authenticated/recruteur/pipeline'
+      path: '/recruteur/pipeline'
+      fullPath: '/recruteur/pipeline'
+      preLoaderRoute: typeof AuthenticatedRecruteurPipelineRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -295,6 +315,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfilRoute: typeof AuthenticatedProfilRoute
   AuthenticatedTableauDeBordRoute: typeof AuthenticatedTableauDeBordRoute
   AuthenticatedRecruteurOffresRoute: typeof AuthenticatedRecruteurOffresRoute
+  AuthenticatedRecruteurPipelineRoute: typeof AuthenticatedRecruteurPipelineRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -308,6 +329,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfilRoute: AuthenticatedProfilRoute,
   AuthenticatedTableauDeBordRoute: AuthenticatedTableauDeBordRoute,
   AuthenticatedRecruteurOffresRoute: AuthenticatedRecruteurOffresRoute,
+  AuthenticatedRecruteurPipelineRoute: AuthenticatedRecruteurPipelineRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
