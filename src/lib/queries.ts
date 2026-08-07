@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { CvAnalysis } from "@/lib/types";
+import type { AppRole, AtsBreakdown, CvAnalysis, LearningPlan, Prediction } from "@/lib/types";
 
 export type CvRow = {
   id: string;
@@ -11,6 +11,13 @@ export type CvRow = {
   global_score: number | null;
   ats_score: number | null;
   readability_score: number | null;
+  label: string | null;
+  is_primary: boolean;
+  language: string;
+  is_anonymous: boolean;
+  ats_breakdown: AtsBreakdown | null;
+  prediction: Prediction | null;
+  learning_plan: LearningPlan | null;
   created_at: string;
 };
 
@@ -28,6 +35,15 @@ export type JobRow = {
   url: string | null;
   description: string | null;
   posted_at: string | null;
+  remote: string | null;
+  visa_sponsorship: boolean;
+  required_language: string | null;
+  salary_min: number | null;
+  salary_currency: string | null;
+  skills: string[];
+  experience_min: number | null;
+  is_published: boolean;
+  user_id: string | null;
 };
 
 export function useCvs() {
@@ -124,4 +140,105 @@ export function useDocuments() {
 export function useRefresh() {
   const qc = useQueryClient();
   return (keys: string[]) => keys.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+}
+
+export function useRole() {
+  return useQuery({
+    queryKey: ["role"],
+    queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      if (!uid) return null;
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", uid)
+        .order("role");
+      if (error) throw error;
+      const roles = (data ?? []).map((r) => r.role as AppRole);
+      return (roles.includes("recruiter") ? "recruiter" : roles[0] ?? null) as AppRole | null;
+    },
+    staleTime: 60_000,
+  });
+}
+
+export function useMissions() {
+  return useQuery({
+    queryKey: ["missions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("agent_missions")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useAlerts() {
+  return useQuery({
+    queryKey: ["alerts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("agent_alerts")
+        .select("id, score, message, is_read, created_at, mission_id, job_id, jobs(title, company, location, url)")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useRecruiterJobs() {
+  return useQuery({
+    queryKey: ["recruiter-jobs"],
+    queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      if (!uid) return [];
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("*")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as JobRow[];
+    },
+  });
+}
+
+export function useRecruiterApplications() {
+  return useQuery({
+    queryKey: ["recruiter-applications"],
+    queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      if (!uid) return [];
+      const { data, error } = await supabase
+        .from("applications")
+        .select(
+          "id, user_id, job_id, cv_id, stage, status, recruiter_note, match_score, match_reasoning, applied_at, jobs!inner(id, title, company, user_id), profiles(full_name, domain, experience_years, city, countries, languages)",
+        )
+        .eq("jobs.user_id", uid)
+        .order("applied_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useCompanies() {
+  return useQuery({
+    queryKey: ["companies"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("companies")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 }

@@ -12,13 +12,17 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedAgentRouteImport } from './routes/_authenticated/agent'
 import { Route as AuthenticatedCandidaturesRouteImport } from './routes/_authenticated/candidatures'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
 import { Route as AuthenticatedCvRouteImport } from './routes/_authenticated/cv'
+import { Route as AuthenticatedEntreprisesRouteImport } from './routes/_authenticated/entreprises'
 import { Route as AuthenticatedEntretienRouteImport } from './routes/_authenticated/entretien'
 import { Route as AuthenticatedOffresRouteImport } from './routes/_authenticated/offres'
 import { Route as AuthenticatedProfilRouteImport } from './routes/_authenticated/profil'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
+import { Route as AuthenticatedRecruteurOffresRouteImport } from './routes/_authenticated/recruteur/offres'
+import { Route as AuthenticatedRecruteurPipelineRouteImport } from './routes/_authenticated/recruteur/pipeline'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -33,6 +37,11 @@ const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAgentRoute = AuthenticatedAgentRouteImport.update({
+  id: '/agent',
+  path: '/agent',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCandidaturesRoute =
   AuthenticatedCandidaturesRouteImport.update({
@@ -50,6 +59,12 @@ const AuthenticatedCvRoute = AuthenticatedCvRouteImport.update({
   path: '/cv',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEntreprisesRoute =
+  AuthenticatedEntreprisesRouteImport.update({
+    id: '/entreprises',
+    path: '/entreprises',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEntretienRoute = AuthenticatedEntretienRouteImport.update({
   id: '/entretien',
   path: '/entretien',
@@ -71,77 +86,113 @@ const AuthenticatedTableauDeBordRoute =
     path: '/tableau-de-bord',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedRecruteurOffresRoute =
+  AuthenticatedRecruteurOffresRouteImport.update({
+    id: '/recruteur/offres',
+    path: '/recruteur/offres',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedRecruteurPipelineRoute =
+  AuthenticatedRecruteurPipelineRouteImport.update({
+    id: '/recruteur/pipeline',
+    path: '/recruteur/pipeline',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/agent': typeof AuthenticatedAgentRoute
   '/candidatures': typeof AuthenticatedCandidaturesRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/cv': typeof AuthenticatedCvRoute
+  '/entreprises': typeof AuthenticatedEntreprisesRoute
   '/entretien': typeof AuthenticatedEntretienRoute
   '/offres': typeof AuthenticatedOffresRoute
   '/profil': typeof AuthenticatedProfilRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/recruteur/offres': typeof AuthenticatedRecruteurOffresRoute
+  '/recruteur/pipeline': typeof AuthenticatedRecruteurPipelineRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/agent': typeof AuthenticatedAgentRoute
   '/candidatures': typeof AuthenticatedCandidaturesRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/cv': typeof AuthenticatedCvRoute
+  '/entreprises': typeof AuthenticatedEntreprisesRoute
   '/entretien': typeof AuthenticatedEntretienRoute
   '/offres': typeof AuthenticatedOffresRoute
   '/profil': typeof AuthenticatedProfilRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/recruteur/offres': typeof AuthenticatedRecruteurOffresRoute
+  '/recruteur/pipeline': typeof AuthenticatedRecruteurPipelineRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/agent': typeof AuthenticatedAgentRoute
   '/_authenticated/candidatures': typeof AuthenticatedCandidaturesRoute
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
   '/_authenticated/cv': typeof AuthenticatedCvRoute
+  '/_authenticated/entreprises': typeof AuthenticatedEntreprisesRoute
   '/_authenticated/entretien': typeof AuthenticatedEntretienRoute
   '/_authenticated/offres': typeof AuthenticatedOffresRoute
   '/_authenticated/profil': typeof AuthenticatedProfilRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/_authenticated/recruteur/offres': typeof AuthenticatedRecruteurOffresRoute
+  '/_authenticated/recruteur/pipeline': typeof AuthenticatedRecruteurPipelineRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/auth'
+    | '/agent'
     | '/candidatures'
     | '/coach'
     | '/cv'
+    | '/entreprises'
     | '/entretien'
     | '/offres'
     | '/profil'
     | '/tableau-de-bord'
+    | '/recruteur/offres'
+    | '/recruteur/pipeline'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/agent'
     | '/candidatures'
     | '/coach'
     | '/cv'
+    | '/entreprises'
     | '/entretien'
     | '/offres'
     | '/profil'
     | '/tableau-de-bord'
+    | '/recruteur/offres'
+    | '/recruteur/pipeline'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/agent'
     | '/_authenticated/candidatures'
     | '/_authenticated/coach'
     | '/_authenticated/cv'
+    | '/_authenticated/entreprises'
     | '/_authenticated/entretien'
     | '/_authenticated/offres'
     | '/_authenticated/profil'
     | '/_authenticated/tableau-de-bord'
+    | '/_authenticated/recruteur/offres'
+    | '/_authenticated/recruteur/pipeline'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -173,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/agent': {
+      id: '/_authenticated/agent'
+      path: '/agent'
+      fullPath: '/agent'
+      preLoaderRoute: typeof AuthenticatedAgentRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/candidatures': {
       id: '/_authenticated/candidatures'
       path: '/candidatures'
@@ -192,6 +250,13 @@ declare module '@tanstack/react-router' {
       path: '/cv'
       fullPath: '/cv'
       preLoaderRoute: typeof AuthenticatedCvRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/entreprises': {
+      id: '/_authenticated/entreprises'
+      path: '/entreprises'
+      fullPath: '/entreprises'
+      preLoaderRoute: typeof AuthenticatedEntreprisesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/entretien': {
@@ -222,27 +287,49 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTableauDeBordRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/recruteur/offres': {
+      id: '/_authenticated/recruteur/offres'
+      path: '/recruteur/offres'
+      fullPath: '/recruteur/offres'
+      preLoaderRoute: typeof AuthenticatedRecruteurOffresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/recruteur/pipeline': {
+      id: '/_authenticated/recruteur/pipeline'
+      path: '/recruteur/pipeline'
+      fullPath: '/recruteur/pipeline'
+      preLoaderRoute: typeof AuthenticatedRecruteurPipelineRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAgentRoute: typeof AuthenticatedAgentRoute
   AuthenticatedCandidaturesRoute: typeof AuthenticatedCandidaturesRoute
   AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
   AuthenticatedCvRoute: typeof AuthenticatedCvRoute
+  AuthenticatedEntreprisesRoute: typeof AuthenticatedEntreprisesRoute
   AuthenticatedEntretienRoute: typeof AuthenticatedEntretienRoute
   AuthenticatedOffresRoute: typeof AuthenticatedOffresRoute
   AuthenticatedProfilRoute: typeof AuthenticatedProfilRoute
   AuthenticatedTableauDeBordRoute: typeof AuthenticatedTableauDeBordRoute
+  AuthenticatedRecruteurOffresRoute: typeof AuthenticatedRecruteurOffresRoute
+  AuthenticatedRecruteurPipelineRoute: typeof AuthenticatedRecruteurPipelineRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAgentRoute: AuthenticatedAgentRoute,
   AuthenticatedCandidaturesRoute: AuthenticatedCandidaturesRoute,
   AuthenticatedCoachRoute: AuthenticatedCoachRoute,
   AuthenticatedCvRoute: AuthenticatedCvRoute,
+  AuthenticatedEntreprisesRoute: AuthenticatedEntreprisesRoute,
   AuthenticatedEntretienRoute: AuthenticatedEntretienRoute,
   AuthenticatedOffresRoute: AuthenticatedOffresRoute,
   AuthenticatedProfilRoute: AuthenticatedProfilRoute,
   AuthenticatedTableauDeBordRoute: AuthenticatedTableauDeBordRoute,
+  AuthenticatedRecruteurOffresRoute: AuthenticatedRecruteurOffresRoute,
+  AuthenticatedRecruteurPipelineRoute: AuthenticatedRecruteurPipelineRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -256,13 +343,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
