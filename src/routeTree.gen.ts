@@ -16,6 +16,7 @@ import { Route as AuthenticatedAgentRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedCandidaturesRouteImport } from './routes/_authenticated/candidatures'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
 import { Route as AuthenticatedCvRouteImport } from './routes/_authenticated/cv'
+import { Route as AuthenticatedEntreprisesRouteImport } from './routes/_authenticated/entreprises'
 import { Route as AuthenticatedEntretienRouteImport } from './routes/_authenticated/entretien'
 import { Route as AuthenticatedOffresRouteImport } from './routes/_authenticated/offres'
 import { Route as AuthenticatedProfilRouteImport } from './routes/_authenticated/profil'
@@ -56,6 +57,12 @@ const AuthenticatedCvRoute = AuthenticatedCvRouteImport.update({
   path: '/cv',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEntreprisesRoute =
+  AuthenticatedEntreprisesRouteImport.update({
+    id: '/entreprises',
+    path: '/entreprises',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEntretienRoute = AuthenticatedEntretienRouteImport.update({
   id: '/entretien',
   path: '/entretien',
@@ -85,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/candidatures': typeof AuthenticatedCandidaturesRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/cv': typeof AuthenticatedCvRoute
+  '/entreprises': typeof AuthenticatedEntreprisesRoute
   '/entretien': typeof AuthenticatedEntretienRoute
   '/offres': typeof AuthenticatedOffresRoute
   '/profil': typeof AuthenticatedProfilRoute
@@ -97,6 +105,7 @@ export interface FileRoutesByTo {
   '/candidatures': typeof AuthenticatedCandidaturesRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/cv': typeof AuthenticatedCvRoute
+  '/entreprises': typeof AuthenticatedEntreprisesRoute
   '/entretien': typeof AuthenticatedEntretienRoute
   '/offres': typeof AuthenticatedOffresRoute
   '/profil': typeof AuthenticatedProfilRoute
@@ -111,6 +120,7 @@ export interface FileRoutesById {
   '/_authenticated/candidatures': typeof AuthenticatedCandidaturesRoute
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
   '/_authenticated/cv': typeof AuthenticatedCvRoute
+  '/_authenticated/entreprises': typeof AuthenticatedEntreprisesRoute
   '/_authenticated/entretien': typeof AuthenticatedEntretienRoute
   '/_authenticated/offres': typeof AuthenticatedOffresRoute
   '/_authenticated/profil': typeof AuthenticatedProfilRoute
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
     | '/candidatures'
     | '/coach'
     | '/cv'
+    | '/entreprises'
     | '/entretien'
     | '/offres'
     | '/profil'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '/candidatures'
     | '/coach'
     | '/cv'
+    | '/entreprises'
     | '/entretien'
     | '/offres'
     | '/profil'
@@ -150,6 +162,7 @@ export interface FileRouteTypes {
     | '/_authenticated/candidatures'
     | '/_authenticated/coach'
     | '/_authenticated/cv'
+    | '/_authenticated/entreprises'
     | '/_authenticated/entretien'
     | '/_authenticated/offres'
     | '/_authenticated/profil'
@@ -213,6 +226,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCvRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/entreprises': {
+      id: '/_authenticated/entreprises'
+      path: '/entreprises'
+      fullPath: '/entreprises'
+      preLoaderRoute: typeof AuthenticatedEntreprisesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/entretien': {
       id: '/_authenticated/entretien'
       path: '/entretien'
@@ -249,6 +269,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCandidaturesRoute: typeof AuthenticatedCandidaturesRoute
   AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
   AuthenticatedCvRoute: typeof AuthenticatedCvRoute
+  AuthenticatedEntreprisesRoute: typeof AuthenticatedEntreprisesRoute
   AuthenticatedEntretienRoute: typeof AuthenticatedEntretienRoute
   AuthenticatedOffresRoute: typeof AuthenticatedOffresRoute
   AuthenticatedProfilRoute: typeof AuthenticatedProfilRoute
@@ -260,6 +281,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCandidaturesRoute: AuthenticatedCandidaturesRoute,
   AuthenticatedCoachRoute: AuthenticatedCoachRoute,
   AuthenticatedCvRoute: AuthenticatedCvRoute,
+  AuthenticatedEntreprisesRoute: AuthenticatedEntreprisesRoute,
   AuthenticatedEntretienRoute: AuthenticatedEntretienRoute,
   AuthenticatedOffresRoute: AuthenticatedOffresRoute,
   AuthenticatedProfilRoute: AuthenticatedProfilRoute,
