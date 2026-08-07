@@ -1,5 +1,12 @@
 import { aiJson, aiText } from "./ai-gateway.server";
-import type { CvAnalysis, MatchResult, ParsedJob, ProfileInput } from "./types";
+import type {
+  CandidateRanking,
+  CvAnalysis,
+  JobDraft,
+  MatchResult,
+  ParsedJob,
+  ProfileInput,
+} from "./types";
 import { DOC_TYPES, LANGUAGES, type DocLanguage, type DocType } from "./types";
 
 function profileBlock(p: ProfileInput | null | undefined): string {
@@ -244,6 +251,114 @@ export async function evaluateAnswer(input: {
 Réponse du candidat : ${input.answer}
 
 JSON : {"score": 0-100, "feedback": "points forts et points à corriger", "improved_answer": "version améliorée de la réponse"}`,
+    },
+  ]);
+}
+
+export async function rankCandidate(input: {
+  job: { title: string; company: string; description: string; skills?: string[] | null; level?: string | null };
+  cvText: string;
+  analysis: CvAnalysis | null;
+  profile: ProfileInput | null;
+}): Promise<CandidateRanking> {
+  return aiJson<CandidateRanking>([
+    {
+      role: "system",
+      content:
+        "Tu es un assistant recruteur exigeant et objectif. Tu évites tout biais lié au nom, au genre, à l'âge ou à la nationalité. Réponds uniquement en JSON valide, en français.",
+    },
+    {
+      role: "user",
+      content: `Offre :
+Poste: ${input.job.title} chez ${input.job.company}
+Niveau: ${input.job.level ?? ""}
+Compétences attendues: ${(input.job.skills ?? []).join(", ")}
+Description: ${input.job.description}
+
+Candidat :
+${profileBlock(input.profile)}
+${input.analysis ? `Synthèse CV: ${JSON.stringify({ skills: input.analysis.skills, technologies: input.analysis.technologies, experiences: input.analysis.experiences, education: input.analysis.education, languages: input.analysis.languages })}` : ""}
+Texte du CV : ${input.cvText.slice(0, 5000)}
+
+JSON : {"score":0-100,"breakdown":{"skills":0-100,"experience":0-100,"language":0-100,"education":0-100},"summary":"3 phrases","strengths":string[],"risks":string[],"recommendation":"à rencontrer"|"à considérer"|"à écarter","interview_questions":["4 questions ciblées"]}`,
+    },
+  ]);
+}
+
+export async function draftJobPosting(input: {
+  brief: string;
+  company: string;
+}): Promise<JobDraft> {
+  return aiJson<JobDraft>([
+    {
+      role: "system",
+      content:
+        "Tu es un assistant recruteur qui rédige des offres d'emploi attractives, inclusives et précises. Réponds uniquement en JSON valide, en français.",
+    },
+    {
+      role: "user",
+      content: `Brief du recruteur :
+${input.brief.slice(0, 6000)}
+Entreprise : ${input.company}
+
+Renvoie ce JSON (mets 0 ou "" si inconnu) :
+{"title":"","company":"","location":"","country":"","contract_type":"","level":"","remote":"sur site|hybride|full remote","required_language":"","salary":"","salary_min":0,"salary_currency":"","experience_min":0,"skills":[],"description":"annonce structurée: mission, responsabilités, profil recherché, avantages"}`,
+    },
+  ]);
+}
+
+export async function translateDocument(input: {
+  content: string;
+  language: DocLanguage;
+}): Promise<string> {
+  return aiText([
+    {
+      role: "system",
+      content: `Tu traduis des documents de candidature en ${LANGUAGES[input.language]} en adaptant les codes culturels du pays. Rends uniquement le document traduit, sans commentaire.`,
+    },
+    { role: "user", content: input.content.slice(0, 12000) },
+  ]);
+}
+
+export async function anonymizeCvText(input: { cvText: string }): Promise<string> {
+  return aiText([
+    {
+      role: "system",
+      content:
+        "Tu produis une version anonyme d'un CV : supprime nom, photo, adresse, e-mail, téléphone, âge, nationalité, genre, photo et noms d'écoles trop identifiants. Conserve compétences, réalisations chiffrées et durées. Rends uniquement le CV anonymisé en français.",
+    },
+    { role: "user", content: input.cvText.slice(0, 8000) },
+  ]);
+}
+
+export async function missionRelevance(input: {
+  mission: {
+    title: string;
+    target_role?: string | null;
+    countries: string[];
+    cities: string[];
+    remote_only: boolean;
+    visa_required: boolean;
+    salary_min?: number | null;
+    languages: string[];
+    contract_type?: string | null;
+  };
+  job: { title: string; company: string; location?: string | null; country?: string | null; description: string };
+  analysis: CvAnalysis | null;
+}): Promise<{ score: number; message: string }> {
+  return aiJson<{ score: number; message: string }>([
+    {
+      role: "system",
+      content:
+        "Tu es un agent de veille emploi. Tu évalues si une offre correspond à la mission d'un candidat. Sois strict. Réponds uniquement en JSON valide, en français.",
+    },
+    {
+      role: "user",
+      content: `Mission : ${JSON.stringify(input.mission)}
+Offre : ${JSON.stringify({ ...input.job, description: input.job.description.slice(0, 2500) })}
+${input.analysis ? `Compétences du candidat : ${input.analysis.skills.join(", ")}` : ""}
+
+JSON : {"score":0-100,"message":"1 phrase expliquant pourquoi cette offre mérite (ou non) l'attention du candidat"}`,
     },
   ]);
 }
