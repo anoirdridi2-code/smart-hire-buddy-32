@@ -13,6 +13,9 @@ export type CvAnalysis = {
   strengths: string[];
   improvements: { title: string; detail: string; priority: "haute" | "moyenne" | "basse" }[];
   country_advice: { country: string; advice: string }[];
+  ats_breakdown?: AtsBreakdown;
+  prediction?: Prediction;
+  learning_plan?: LearningPlan;
 };
 
 export type MatchResult = {

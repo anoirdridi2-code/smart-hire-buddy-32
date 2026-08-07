@@ -60,6 +60,9 @@ export const analyzeCvFn = createServerFn({ method: "POST" })
         global_score: Math.round(analysis.global_score ?? 0),
         ats_score: Math.round(analysis.ats_score ?? 0),
         readability_score: Math.round(analysis.readability_score ?? 0),
+        ats_breakdown: analysis.ats_breakdown ?? null,
+        prediction: analysis.prediction ?? null,
+        learning_plan: analysis.learning_plan ?? null,
       })
       .eq("id", data.cvId);
     if (updateError) throw new Error(updateError.message);
