@@ -365,7 +365,22 @@ export const publishJobFn = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { jobId, ...fields } = data;
     const payload = {
-      ...fields,
+      title: fields.title,
+      company: fields.company,
+      description: fields.description,
+      is_published: fields.is_published,
+      location: fields.location ?? null,
+      country: fields.country ?? null,
+      contract_type: fields.contract_type ?? null,
+      level: fields.level ?? null,
+      remote: fields.remote ?? null,
+      required_language: fields.required_language ?? null,
+      salary: fields.salary ?? null,
+      salary_min: fields.salary_min ?? null,
+      salary_currency: fields.salary_currency ?? null,
+      experience_min: fields.experience_min ?? null,
+      visa_sponsorship: fields.visa_sponsorship ?? false,
+      skills: fields.skills ?? [],
       user_id: userId,
       is_demo: false,
       source: "Espace recruteur",
