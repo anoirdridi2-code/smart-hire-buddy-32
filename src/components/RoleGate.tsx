@@ -28,16 +28,6 @@ export function RoleGate({ children }: { children: ReactNode }) {
   const claim = useServerFn(claimRoleFn);
   const refresh = useRefresh();
 
-  if (isPending) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="size-6 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (role) return <>{children}</>;
-
   async function choose(value: "candidate" | "recruiter") {
     setBusy(value);
     try {
@@ -49,6 +39,16 @@ export function RoleGate({ children }: { children: ReactNode }) {
       setBusy(null);
     }
   }
+
+  if (isPending) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="size-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (role) return <>{children}</>;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-hero px-4 py-12">
