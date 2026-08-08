@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS voice_gender text NOT NULL DEFAULT 'female' CHECK (voice_gender IN ('female','male'));
