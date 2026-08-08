@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useCvs } from "@/lib/queries";
+import { MicButton, SpeakButton } from "@/components/VoiceControls";
 import { evaluateAnswerFn, interviewFn } from "@/lib/career.functions";
 
 export const Route = createFileRoute("/_authenticated/entretien")({
@@ -109,7 +110,10 @@ function InterviewPage() {
       {active && (
         <Card className="panel mt-6">
           <CardHeader>
-            <CardTitle className="font-display text-base">{active}</CardTitle>
+            <div className="flex items-start justify-between gap-2">
+              <CardTitle className="font-display text-base">{active}</CardTitle>
+              <SpeakButton key={active} text={active} autoPlay />
+            </div>
           </CardHeader>
           <CardContent className="space-y-3">
             <Textarea
@@ -119,6 +123,13 @@ function InterviewPage() {
               placeholder="Votre réponse…"
               onChange={(e) => setAnswer(e.target.value)}
             />
+            <div className="flex items-center gap-2">
+              <MicButton
+                disabled={evaluating}
+                onText={(text) => setAnswer((prev) => (prev ? `${prev} ${text}` : text))}
+              />
+              <span className="text-xs text-muted-foreground">Répondez à l'oral ou à l'écrit</span>
+            </div>
             <Button onClick={submit} disabled={evaluating}>
               {evaluating ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
               Évaluer ma réponse
@@ -126,7 +137,10 @@ function InterviewPage() {
             {result && (
               <div className="space-y-2 rounded-lg border border-border/70 p-4">
                 <Badge variant={result.score >= 70 ? "default" : "secondary"}>{result.score}/100</Badge>
-                <p className="text-sm text-muted-foreground">{result.feedback}</p>
+                <div className="flex items-start gap-1">
+                  <p className="text-sm text-muted-foreground">{result.feedback}</p>
+                  <SpeakButton text={result.feedback} />
+                </div>
                 <p className="whitespace-pre-wrap text-sm">
                   <strong>Version améliorée :</strong> {result.improved_answer}
                 </p>
