@@ -24,6 +24,7 @@ import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authen
 import { Route as AuthenticatedRecruteurOffresRouteImport } from './routes/_authenticated/recruteur/offres'
 import { Route as AuthenticatedRecruteurPipelineRouteImport } from './routes/_authenticated/recruteur/pipeline'
 import { Route as ApiVoiceSpeakRouteImport } from './routes/api/voice/speak'
+import { Route as ApiVoiceTranscribeRouteImport } from './routes/api/voice/transcribe'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -104,6 +105,11 @@ const ApiVoiceSpeakRoute = ApiVoiceSpeakRouteImport.update({
   path: '/api/voice/speak',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiVoiceTranscribeRoute = ApiVoiceTranscribeRouteImport.update({
+  id: '/api/voice/transcribe',
+  path: '/api/voice/transcribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/recruteur/offres': typeof AuthenticatedRecruteurOffresRoute
   '/recruteur/pipeline': typeof AuthenticatedRecruteurPipelineRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
+  '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -136,6 +143,7 @@ export interface FileRoutesByTo {
   '/recruteur/offres': typeof AuthenticatedRecruteurOffresRoute
   '/recruteur/pipeline': typeof AuthenticatedRecruteurPipelineRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
+  '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -154,6 +162,7 @@ export interface FileRoutesById {
   '/_authenticated/recruteur/offres': typeof AuthenticatedRecruteurOffresRoute
   '/_authenticated/recruteur/pipeline': typeof AuthenticatedRecruteurPipelineRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
+  '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -172,6 +181,7 @@ export interface FileRouteTypes {
     | '/recruteur/offres'
     | '/recruteur/pipeline'
     | '/api/voice/speak'
+    | '/api/voice/transcribe'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/recruteur/offres'
     | '/recruteur/pipeline'
     | '/api/voice/speak'
+    | '/api/voice/transcribe'
   id:
     | '__root__'
     | '/'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/_authenticated/recruteur/offres'
     | '/_authenticated/recruteur/pipeline'
     | '/api/voice/speak'
+    | '/api/voice/transcribe'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -212,6 +224,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ApiVoiceSpeakRoute: typeof ApiVoiceSpeakRoute
+  ApiVoiceTranscribeRoute: typeof ApiVoiceTranscribeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -321,6 +334,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiVoiceSpeakRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/voice/transcribe': {
+      id: '/api/voice/transcribe'
+      path: '/api/voice/transcribe'
+      fullPath: '/api/voice/transcribe'
+      preLoaderRoute: typeof ApiVoiceTranscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -360,6 +380,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ApiVoiceSpeakRoute: ApiVoiceSpeakRoute,
+  ApiVoiceTranscribeRoute: ApiVoiceTranscribeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
