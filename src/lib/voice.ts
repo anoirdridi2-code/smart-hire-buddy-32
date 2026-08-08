@@ -138,7 +138,7 @@ export async function speak(
       method: "POST",
       headers: { "Content-Type": "application/json", ...(await authHeader()) },
       body: JSON.stringify({ text, gender }),
-      signal,
+      signal: signal ?? null,
     });
     if (!res.ok || !res.body) {
       throw new Error((await res.text().catch(() => "")) || "Synthèse vocale indisponible.");
