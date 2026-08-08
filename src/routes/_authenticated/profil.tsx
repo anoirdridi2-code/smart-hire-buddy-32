@@ -40,6 +40,7 @@ function ProfilePage() {
     desired_salary: "",
     languages: "",
     contract_type: "",
+    voice_gender: "female",
   });
 
   useEffect(() => {
@@ -53,6 +54,7 @@ function ProfilePage() {
       desired_salary: profile.desired_salary ?? "",
       languages: (profile.languages ?? []).join(", "),
       contract_type: profile.contract_type ?? "",
+      voice_gender: profile.voice_gender === "male" ? "male" : "female",
     });
   }, [profile]);
 
@@ -76,6 +78,7 @@ function ProfilePage() {
           .map((c) => c.trim())
           .filter(Boolean),
         contract_type: form.contract_type.trim().slice(0, 40) || null,
+        voice_gender: form.voice_gender === "male" ? "male" : "female",
       })
       .eq("id", userData.user!.id);
     if (error) {
@@ -114,6 +117,33 @@ function ProfilePage() {
                 />
               </div>
             ))}
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Voix de l'assistant IA</Label>
+              <div className="flex gap-2">
+                {(
+                  [
+                    ["female", "Féminine"],
+                    ["male", "Masculine"],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setForm({ ...form, voice_gender: value })}
+                    className={`flex-1 rounded-lg border p-3 text-sm transition-colors ${
+                      form.voice_gender === value
+                        ? "border-primary bg-primary/10"
+                        : "border-border/70 hover:bg-muted"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Utilisée par le coach IA et la simulation d'entretien.
+              </p>
+            </div>
             <Button type="submit" className="sm:col-span-2">
               Enregistrer
             </Button>
