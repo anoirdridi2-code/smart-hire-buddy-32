@@ -7,6 +7,9 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { MicButton, SpeakButton } from "@/components/VoiceControls";
 import { useCvs } from "@/lib/queries";
 import { coachFn } from "@/lib/career.functions";
 
@@ -41,11 +44,12 @@ function CoachPage() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [voiceMode, setVoiceMode] = useState(false);
   const { data: cvs } = useCvs();
   const coach = useServerFn(coachFn);
 
-  async function send() {
-    const text = input.trim();
+  async function send(override?: string) {
+    const text = (override ?? input).trim();
     if (!text) return;
     const next: Msg[] = [...messages, { role: "user", content: text }];
     setMessages(next);
@@ -68,19 +72,33 @@ function CoachPage() {
       <Card className="panel">
         <CardContent className="space-y-4 p-4">
           <div className="max-h-[55vh] space-y-3 overflow-y-auto pr-1">
-            {messages.map((m, i) => (
-              <div
-                key={i}
-                className={
-                  m.role === "user"
-                    ? "ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-4 py-2.5 text-sm text-primary-foreground"
-                    : "mr-auto max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-bl-sm bg-muted px-4 py-2.5 text-sm"
-                }
-              >
-                {m.content}
-              </div>
-            ))}
+            {messages.map((m, i) =>
+              m.role === "user" ? (
+                <div
+                  key={i}
+                  className="ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-4 py-2.5 text-sm text-primary-foreground"
+                >
+                  {m.content}
+                </div>
+              ) : (
+                <div key={i} className="mr-auto flex max-w-[90%] items-start gap-1">
+                  <div className="whitespace-pre-wrap rounded-2xl rounded-bl-sm bg-muted px-4 py-2.5 text-sm">
+                    {m.content}
+                  </div>
+                  <SpeakButton
+                    text={m.content}
+                    autoPlay={voiceMode && i === messages.length - 1 && i > 0}
+                  />
+                </div>
+              ),
+            )}
             {loading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-border/70 px-3 py-2">
+            <Label htmlFor="voice-mode" className="text-sm text-muted-foreground">
+              Réponses lues à voix haute
+            </Label>
+            <Switch id="voice-mode" checked={voiceMode} onCheckedChange={setVoiceMode} />
           </div>
           <div className="flex gap-2">
             <Textarea
@@ -96,9 +114,18 @@ function CoachPage() {
                 }
               }}
             />
-            <Button onClick={send} disabled={loading}>
-              <Send className="size-4" />
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button onClick={() => void send()} disabled={loading}>
+                <Send className="size-4" />
+              </Button>
+              <MicButton
+                disabled={loading}
+                onText={(text) => {
+                  setInput("");
+                  void send(text);
+                }}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>

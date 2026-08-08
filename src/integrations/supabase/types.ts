@@ -526,6 +526,7 @@ export type Database = {
           id: string
           languages: string[] | null
           updated_at: string
+          voice_gender: string
         }
         Insert: {
           city?: string | null
@@ -540,6 +541,7 @@ export type Database = {
           id: string
           languages?: string[] | null
           updated_at?: string
+          voice_gender?: string
         }
         Update: {
           city?: string | null
@@ -554,6 +556,7 @@ export type Database = {
           id?: string
           languages?: string[] | null
           updated_at?: string
+          voice_gender?: string
         }
         Relationships: []
       }
