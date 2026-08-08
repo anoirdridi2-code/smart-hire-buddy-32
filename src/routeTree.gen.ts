@@ -23,6 +23,7 @@ import { Route as AuthenticatedProfilRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
 import { Route as AuthenticatedRecruteurOffresRouteImport } from './routes/_authenticated/recruteur/offres'
 import { Route as AuthenticatedRecruteurPipelineRouteImport } from './routes/_authenticated/recruteur/pipeline'
+import { Route as ApiVoiceSpeakRouteImport } from './routes/api/voice/speak'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -98,6 +99,11 @@ const AuthenticatedRecruteurPipelineRoute =
     path: '/recruteur/pipeline',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiVoiceSpeakRoute = ApiVoiceSpeakRouteImport.update({
+  id: '/api/voice/speak',
+  path: '/api/voice/speak',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/recruteur/offres': typeof AuthenticatedRecruteurOffresRoute
   '/recruteur/pipeline': typeof AuthenticatedRecruteurPipelineRoute
+  '/api/voice/speak': typeof ApiVoiceSpeakRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/recruteur/offres': typeof AuthenticatedRecruteurOffresRoute
   '/recruteur/pipeline': typeof AuthenticatedRecruteurPipelineRoute
+  '/api/voice/speak': typeof ApiVoiceSpeakRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -145,6 +153,7 @@ export interface FileRoutesById {
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/_authenticated/recruteur/offres': typeof AuthenticatedRecruteurOffresRoute
   '/_authenticated/recruteur/pipeline': typeof AuthenticatedRecruteurPipelineRoute
+  '/api/voice/speak': typeof ApiVoiceSpeakRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -162,6 +171,7 @@ export interface FileRouteTypes {
     | '/tableau-de-bord'
     | '/recruteur/offres'
     | '/recruteur/pipeline'
+    | '/api/voice/speak'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/tableau-de-bord'
     | '/recruteur/offres'
     | '/recruteur/pipeline'
+    | '/api/voice/speak'
   id:
     | '__root__'
     | '/'
@@ -193,12 +204,14 @@ export interface FileRouteTypes {
     | '/_authenticated/tableau-de-bord'
     | '/_authenticated/recruteur/offres'
     | '/_authenticated/recruteur/pipeline'
+    | '/api/voice/speak'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiVoiceSpeakRoute: typeof ApiVoiceSpeakRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -301,6 +314,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecruteurPipelineRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/voice/speak': {
+      id: '/api/voice/speak'
+      path: '/api/voice/speak'
+      fullPath: '/api/voice/speak'
+      preLoaderRoute: typeof ApiVoiceSpeakRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -339,17 +359,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiVoiceSpeakRoute: ApiVoiceSpeakRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
