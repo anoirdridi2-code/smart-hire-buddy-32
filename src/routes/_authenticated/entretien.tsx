@@ -110,12 +110,16 @@ function InterviewPage() {
       {active && (
         <Card className="panel mt-6">
           <CardHeader>
-            <div className="flex items-start justify-between gap-2">
-              <CardTitle className="font-display text-base">{active}</CardTitle>
-              <SpeakButton key={active} text={active} autoPlay />
+            <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+              <AiAvatar speaking={speaking} />
+              <div className="flex flex-1 items-start justify-between gap-2">
+                <CardTitle className="font-display text-base">{active}</CardTitle>
+                <SpeakButton key={active} text={active} autoPlay onSpeakingChange={setSpeaking} />
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
+
             <Textarea
               rows={6}
               value={answer}
