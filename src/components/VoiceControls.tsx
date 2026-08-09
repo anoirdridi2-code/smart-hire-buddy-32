@@ -67,22 +67,31 @@ export function SpeakButton({
   text,
   autoPlay = false,
   className,
+  onSpeakingChange,
 }: {
   text: string;
   autoPlay?: boolean;
   className?: string;
+  onSpeakingChange?: (speaking: boolean) => void;
 }) {
   const gender = useVoiceGender();
   const [playing, setPlaying] = useState(false);
   const controller = useRef<AbortController | null>(null);
   const played = useRef(false);
+  const notify = useRef(onSpeakingChange);
+  notify.current = onSpeakingChange;
+
+  const setSpeaking = (value: boolean) => {
+    setPlaying(value);
+    notify.current?.(value);
+  };
 
   const play = async () => {
     if (!text.trim()) return;
     controller.current?.abort();
     const ac = new AbortController();
     controller.current = ac;
-    setPlaying(true);
+    setSpeaking(true);
     try {
       await speak(text, gender, ac.signal);
     } catch (e) {
@@ -90,7 +99,7 @@ export function SpeakButton({
         toast.error(e instanceof Error ? e.message : "Lecture vocale impossible.");
       }
     } finally {
-      if (controller.current === ac) setPlaying(false);
+      if (controller.current === ac) setSpeaking(false);
     }
   };
 
@@ -106,8 +115,9 @@ export function SpeakButton({
   function stop() {
     controller.current?.abort();
     controller.current = null;
-    setPlaying(false);
+    setSpeaking(false);
   }
+
 
   return (
     <Button
