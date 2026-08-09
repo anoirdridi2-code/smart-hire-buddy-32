@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useCvs } from "@/lib/queries";
 import { MicButton, SpeakButton } from "@/components/VoiceControls";
+import { AiAvatar } from "@/components/AiAvatar";
+
 import { evaluateAnswerFn, interviewFn } from "@/lib/career.functions";
 
 export const Route = createFileRoute("/_authenticated/entretien")({
@@ -38,7 +40,9 @@ function InterviewPage() {
   const [active, setActive] = useState<string | null>(null);
   const [answer, setAnswer] = useState("");
   const [evaluating, setEvaluating] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
   const [result, setResult] = useState<{ score: number; feedback: string; improved_answer: string } | null>(
+
     null,
   );
 
