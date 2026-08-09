@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useCvs } from "@/lib/queries";
 import { MicButton, SpeakButton } from "@/components/VoiceControls";
+import { AiAvatar } from "@/components/AiAvatar";
+
 import { evaluateAnswerFn, interviewFn } from "@/lib/career.functions";
 
 export const Route = createFileRoute("/_authenticated/entretien")({
@@ -38,7 +40,9 @@ function InterviewPage() {
   const [active, setActive] = useState<string | null>(null);
   const [answer, setAnswer] = useState("");
   const [evaluating, setEvaluating] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
   const [result, setResult] = useState<{ score: number; feedback: string; improved_answer: string } | null>(
+
     null,
   );
 
@@ -110,12 +114,16 @@ function InterviewPage() {
       {active && (
         <Card className="panel mt-6">
           <CardHeader>
-            <div className="flex items-start justify-between gap-2">
-              <CardTitle className="font-display text-base">{active}</CardTitle>
-              <SpeakButton key={active} text={active} autoPlay />
+            <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+              <AiAvatar speaking={speaking} />
+              <div className="flex flex-1 items-start justify-between gap-2">
+                <CardTitle className="font-display text-base">{active}</CardTitle>
+                <SpeakButton key={active} text={active} autoPlay onSpeakingChange={setSpeaking} />
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
+
             <Textarea
               rows={6}
               value={answer}
