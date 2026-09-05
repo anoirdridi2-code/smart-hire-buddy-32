@@ -1,3 +1,5 @@
+import { ollamaChat, ollamaEnabled, type OllamaMessage } from "./ollama.server";
+
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-3.5-flash";
 
