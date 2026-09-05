@@ -15,6 +15,7 @@ import {
   matchCvToJob,
   parseJobPosting,
 } from "./career.server";
+import { buildSearchPlan, splitJobPostings } from "./jobsearch.server";
 import type { CvAnalysis, ProfileInput } from "./types";
 
 export const analyzeCvFn = createServerFn({ method: "POST" })
@@ -608,4 +609,64 @@ export const anonymizeCvFn = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
     return created;
+  });
+
+export const searchPlanFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ wish: z.string().max(300).optional() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const [{ data: profile }, { data: cv }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("domain, experience_years, countries, city, desired_salary, languages, contract_type")
+        .eq("id", userId)
+        .maybeSingle(),
+      supabase
+        .from("cvs")
+        .select("raw_text")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+    return buildSearchPlan({
+      profileText: JSON.stringify(profile ?? {}),
+      cvText: cv?.raw_text ?? "",
+      wish: data.wish ?? "",
+    });
+  });
+
+export const importJobsBulkFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ raw: z.string().trim().min(60).max(30000) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const jobs = await splitJobPostings(data.raw);
+    if (jobs.length === 0) throw new Error("Aucune offre détectée dans ce texte.");
+
+    const rows = jobs.map((parsed) => ({
+      user_id: userId,
+      is_demo: false,
+      title: parsed.title || "Offre importée",
+      company: parsed.company || "Entreprise non précisée",
+      location: parsed.location || null,
+      country: parsed.country || null,
+      salary: parsed.salary || null,
+      contract_type: parsed.contract_type || null,
+      level: parsed.level || null,
+      source: parsed.source || "Import multiple",
+      url: parsed.url || null,
+      description: parsed.description || "",
+      posted_at: new Date().toISOString().slice(0, 10),
+    }));
+
+    const { error } = await supabase.from("jobs").insert(rows);
+    if (error) throw new Error(error.message);
+    return { imported: rows.length };
   });
