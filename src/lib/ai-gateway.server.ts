@@ -1,3 +1,5 @@
+import { ollamaChat, ollamaEnabled, type OllamaMessage } from "./ollama.server";
+
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-3.5-flash";
 
@@ -52,7 +54,22 @@ async function request(body: Record<string, unknown>): Promise<string> {
   return data.choices?.[0]?.message?.content ?? "";
 }
 
+/** Ollama only handles plain text messages (no PDF/file blocks). */
+function plainMessages(messages: AiMessage[]): OllamaMessage[] | null {
+  const out: OllamaMessage[] = [];
+  for (const m of messages) {
+    if (typeof m.content !== "string") return null;
+    out.push({ role: m.role, content: m.content });
+  }
+  return out;
+}
+
 export async function aiText(messages: AiMessage[]): Promise<string> {
+  const plain = ollamaEnabled() ? plainMessages(messages) : null;
+  if (plain) {
+    const answer = await ollamaChat(plain, false);
+    if (answer) return answer;
+  }
   return request({ messages });
 }
 
@@ -68,6 +85,18 @@ function extractJson(raw: string): string {
 }
 
 export async function aiJson<T>(messages: AiMessage[]): Promise<T> {
+  const plain = ollamaEnabled() ? plainMessages(messages) : null;
+  if (plain) {
+    const answer = await ollamaChat(plain, true);
+    if (answer) {
+      try {
+        return JSON.parse(extractJson(answer)) as T;
+      } catch {
+        console.error("Ollama JSON parse failed, falling back.", answer.slice(0, 400));
+      }
+    }
+  }
+
   const raw = await request({
     messages,
     response_format: { type: "json_object" },
@@ -79,3 +108,4 @@ export async function aiJson<T>(messages: AiMessage[]): Promise<T> {
     throw new AiError(502, "Réponse IA illisible. Réessayez.");
   }
 }
+

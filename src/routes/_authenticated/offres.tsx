@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from "@/integrations/supabase/client";
 import { useCvs, useJobs, useMatches, useRefresh } from "@/lib/queries";
 import { importJobFn, matchJobFn } from "@/lib/career.functions";
+import { GlobalJobSearch } from "@/components/GlobalJobSearch";
 
 export const Route = createFileRoute("/_authenticated/offres")({
   head: () => ({
@@ -149,6 +150,7 @@ function JobsPage() {
           {matchingAll ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Sparkles className="mr-2 size-4" />}
           Matcher mon CV
         </Button>
+        <GlobalJobSearch onImported={() => refresh(["jobs"])} />
         <Dialog open={openImport} onOpenChange={setOpenImport}>
           <DialogTrigger asChild>
             <Button>
