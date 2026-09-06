@@ -72,6 +72,7 @@ export function useJobs() {
       const { data, error } = await supabase
         .from("jobs")
         .select("*")
+        .eq("is_demo", false)
         .order("posted_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as unknown as JobRow[];

@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Loader2, Plus, Send, Sparkles } from "lucide-react";
+import { ExternalLink, Globe2, Loader2, Plus, Send, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useCvs, useJobs, useMatches, useRefresh } from "@/lib/queries";
-import { importJobFn, matchJobFn } from "@/lib/career.functions";
+import { fetchLiveJobsFn, importJobFn, matchJobFn } from "@/lib/career.functions";
 import { GlobalJobSearch } from "@/components/GlobalJobSearch";
 
 export const Route = createFileRoute("/_authenticated/offres")({
@@ -41,6 +41,8 @@ function JobsPage() {
   const [matchingAll, setMatchingAll] = useState(false);
   const [openImport, setOpenImport] = useState(false);
   const [busyJob, setBusyJob] = useState<string | null>(null);
+  const [loadingLive, setLoadingLive] = useState(false);
+  const autoLoaded = useRef(false);
 
   const { data: cvs } = useCvs();
   const cv = cvs?.[0] ?? null;
@@ -49,6 +51,35 @@ function JobsPage() {
   const refresh = useRefresh();
   const importJob = useServerFn(importJobFn);
   const matchJob = useServerFn(matchJobFn);
+  const fetchLive = useServerFn(fetchLiveJobsFn);
+
+  const loadLiveJobs = useCallback(
+    async (silent = false) => {
+      setLoadingLive(true);
+      try {
+        const res = await fetchLive({ data: { query: search.trim() } });
+        refresh(["jobs"]);
+        if (!silent) {
+          toast.success(
+            res.imported > 0
+              ? `${res.imported} offres réelles ajoutées.`
+              : "Vos offres sont déjà à jour.",
+          );
+        }
+      } catch (e) {
+        if (!silent) toast.error(e instanceof Error ? e.message : "Récupération impossible.");
+      } finally {
+        setLoadingLive(false);
+      }
+    },
+    [fetchLive, refresh, search],
+  );
+
+  useEffect(() => {
+    if (autoLoaded.current || !jobs || jobs.length > 0) return;
+    autoLoaded.current = true;
+    void loadLiveJobs(true);
+  }, [jobs, loadLiveJobs]);
 
   const scoreByJob = useMemo(() => {
     const map = new Map<string, number>();
@@ -150,6 +181,10 @@ function JobsPage() {
           {matchingAll ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Sparkles className="mr-2 size-4" />}
           Matcher mon CV
         </Button>
+        <Button variant="outline" onClick={() => void loadLiveJobs()} disabled={loadingLive}>
+          {loadingLive ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Globe2 className="mr-2 size-4" />}
+          Offres réelles
+        </Button>
         <GlobalJobSearch onImported={() => refresh(["jobs"])} />
         <Dialog open={openImport} onOpenChange={setOpenImport}>
           <DialogTrigger asChild>
@@ -202,7 +237,6 @@ function JobsPage() {
                         {t}
                       </Badge>
                     ))}
-                  {!job.is_demo && <Badge variant="outline">Ajoutée par vous</Badge>}
                 </div>
                 <p className="line-clamp-3 text-sm text-muted-foreground">{job.description}</p>
                 <div className="mt-auto flex gap-2 pt-2">
@@ -224,6 +258,14 @@ function JobsPage() {
                     <Send className="mr-2 size-4" />
                     Postuler
                   </Button>
+                  {job.url && (
+                    <Button asChild size="sm" variant="ghost">
+                      <a href={job.url} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="size-4" />
+                        <span className="sr-only">Voir l'annonce</span>
+                      </a>
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

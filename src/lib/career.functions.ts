@@ -670,3 +670,65 @@ export const importJobsBulkFn = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { imported: rows.length };
   });
+
+/**
+ * Récupère des offres RÉELLES depuis des sources publiques autorisées,
+ * les enregistre pour l'utilisateur et supprime les offres de démonstration.
+ */
+export const fetchLiveJobsFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ query: z.string().trim().max(120).optional() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    let query = (data.query ?? "").trim();
+    if (!query) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("domain")
+        .eq("id", userId)
+        .maybeSingle();
+      query = (profile?.domain as string | null) ?? "";
+    }
+
+    const { fetchLiveJobs } = await import("./live-jobs.server");
+    const live = await fetchLiveJobs(query, 40);
+    if (live.length === 0) {
+      throw new Error("Aucune offre récupérée pour le moment. Réessayez dans un instant.");
+    }
+
+    const { data: existing } = await supabase
+      .from("jobs")
+      .select("url")
+      .eq("user_id", userId)
+      .not("url", "is", null);
+    const known = new Set((existing ?? []).map((r) => r.url as string));
+
+    const rows = live
+      .filter((j) => !known.has(j.url))
+      .map((j) => ({
+        user_id: userId,
+        is_demo: false,
+        title: j.title.slice(0, 200),
+        company: j.company.slice(0, 160),
+        location: j.location,
+        country: j.country,
+        salary: j.salary,
+        contract_type: j.contract_type,
+        level: j.level,
+        remote: j.remote,
+        source: j.source,
+        url: j.url,
+        description: j.description,
+        posted_at: j.posted_at ?? new Date().toISOString().slice(0, 10),
+      }));
+
+    if (rows.length > 0) {
+      const { error } = await supabase.from("jobs").insert(rows);
+      if (error) throw new Error(error.message);
+    }
+
+    return { imported: rows.length, found: live.length };
+  });
