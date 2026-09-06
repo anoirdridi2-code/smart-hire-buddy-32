@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Globe2, Loader2, Plus, Send, Sparkles } from "lucide-react";
+import { ExternalLink, Globe2, Loader2, Plus, Send, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -237,7 +237,6 @@ function JobsPage() {
                         {t}
                       </Badge>
                     ))}
-                  {!job.is_demo && <Badge variant="outline">Ajoutée par vous</Badge>}
                 </div>
                 <p className="line-clamp-3 text-sm text-muted-foreground">{job.description}</p>
                 <div className="mt-auto flex gap-2 pt-2">
@@ -259,6 +258,14 @@ function JobsPage() {
                     <Send className="mr-2 size-4" />
                     Postuler
                   </Button>
+                  {job.url && (
+                    <Button asChild size="sm" variant="ghost">
+                      <a href={job.url} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="size-4" />
+                        <span className="sr-only">Voir l'annonce</span>
+                      </a>
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
