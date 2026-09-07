@@ -684,20 +684,49 @@ export const fetchLiveJobsFn = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
 
     let query = (data.query ?? "").trim();
+    const keywords: string[] = [];
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("domain")
+      .eq("id", userId)
+      .maybeSingle();
+    const domain = (profile?.domain as string | null) ?? "";
+    if (domain) keywords.push(domain);
+
+    // Mots-clés issus du CV le plus récent (métier + compétences réelles).
+    const { data: cv } = await supabase
+      .from("cvs")
+      .select("analysis")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const analysis = (cv?.analysis ?? null) as {
+      skills?: string[];
+      technologies?: string[];
+      experiences?: Array<{ title?: string }>;
+    } | null;
+    if (analysis) {
+      (analysis.experiences ?? []).slice(0, 3).forEach((e) => {
+        if (e?.title) keywords.push(e.title);
+      });
+      (analysis.skills ?? []).slice(0, 12).forEach((s) => keywords.push(s));
+      (analysis.technologies ?? []).slice(0, 10).forEach((s) => keywords.push(s));
+    }
+
     if (!query) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("domain")
-        .eq("id", userId)
-        .maybeSingle();
-      query = (profile?.domain as string | null) ?? "";
+      query = analysis?.experiences?.[0]?.title?.trim() || domain;
     }
 
     const { fetchLiveJobs } = await import("./live-jobs.server");
-    const live = await fetchLiveJobs(query, 40);
+    const live = await fetchLiveJobs(query, 40, keywords);
     if (live.length === 0) {
-      throw new Error("Aucune offre récupérée pour le moment. Réessayez dans un instant.");
+      throw new Error(
+        "Aucune offre correspondant à votre profil pour le moment. Essayez un autre mot-clé.",
+      );
     }
+
 
     const { data: existing } = await supabase
       .from("jobs")
