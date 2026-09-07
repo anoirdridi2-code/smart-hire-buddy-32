@@ -61,11 +61,64 @@ async function getJson<T>(url: string, ms = 15000): Promise<T | null> {
   }
 }
 
-function matches(job: LiveJob, terms: string[]): boolean {
-  if (terms.length === 0) return true;
-  const hay = `${job.title} ${job.company} ${job.location ?? ""} ${job.description}`.toLowerCase();
-  return terms.some((t) => hay.includes(t));
+/** Synonymes multilingues par métier pour ne pas rater les annonces EN/DE. */
+const SYNONYMS: Record<string, string[]> = {
+  electrique: ["electrical", "elektro", "elektriker", "electrician", "elektrotechnik"],
+  electricite: ["electrical", "elektro", "electrician"],
+  automatisme: ["automation", "automatisierung", "plc", "sps", "scada", "controls"],
+  automatique: ["automation", "control engineer", "plc"],
+  maintenance: ["maintenance", "instandhaltung", "wartung", "technicien de maintenance"],
+  industriel: ["industrial", "industrie", "manufacturing", "production"],
+  mecanique: ["mechanical", "mechanik", "maschinenbau"],
+  informatique: ["software", "developer", "it", "engineer", "entwickler"],
+  developpeur: ["developer", "software engineer", "entwickler"],
+  reseau: ["network", "netzwerk"],
+  data: ["data", "analyst", "scientist"],
+  energie: ["energy", "energie", "photovoltaic", "solar", "renewable"],
+  robotique: ["robotics", "roboter"],
+};
+
+function normalize(input: string): string {
+  return input
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
+
+/** Construit la liste de mots-clés (termes utilisateur + synonymes EN/DE). */
+export function expandKeywords(sources: string[]): string[] {
+  const out = new Set<string>();
+  for (const source of sources) {
+    for (const token of normalize(source).split(/[^a-z0-9+#]+/)) {
+      if (token.length < 3) continue;
+      out.add(token);
+      for (const [key, syns] of Object.entries(SYNONYMS)) {
+        if (token.startsWith(key.slice(0, 6))) syns.forEach((s) => out.add(s));
+      }
+    }
+  }
+  return [...out].slice(0, 40);
+}
+
+const STOP = new Set([
+  "the","and","les","des","pour","avec","dans","une","son","ses","est","sur","cdi","stage",
+  "job","jobs","emploi","poste","recherche","travail","work","full","time","remote",
+]);
+
+/** Score de pertinence : titre = fort, description = faible. */
+function relevance(job: LiveJob, terms: string[]): number {
+  if (terms.length === 0) return 0;
+  const title = normalize(`${job.title}`);
+  const body = normalize(`${job.description} ${job.location ?? ""}`);
+  let score = 0;
+  for (const term of terms) {
+    if (STOP.has(term)) continue;
+    if (title.includes(term)) score += 3;
+    else if (body.includes(term)) score += 1;
+  }
+  return score;
+}
+
 
 const EU_COUNTRIES: Record<string, string> = {
   berlin: "Allemagne",
@@ -214,13 +267,16 @@ async function fromJobicy(query: string): Promise<LiveJob[]> {
   });
 }
 
-/** Agrège les sources, filtre sur les mots-clés et déduplique par lien. */
-export async function fetchLiveJobs(query: string, limit = 40): Promise<LiveJob[]> {
-  const terms = query
-    .toLowerCase()
-    .split(/[\s,]+/)
-    .map((t) => t.trim())
-    .filter((t) => t.length > 2);
+/**
+ * Agrège les sources, ne garde que les offres réellement pertinentes
+ * (mots-clés du profil / CV) et les trie par pertinence.
+ */
+export async function fetchLiveJobs(
+  query: string,
+  limit = 40,
+  extraKeywords: string[] = [],
+): Promise<LiveJob[]> {
+  const terms = expandKeywords([query, ...extraKeywords]);
 
   const results = await Promise.all([
     fromArbeitnow(),
@@ -229,26 +285,24 @@ export async function fetchLiveJobs(query: string, limit = 40): Promise<LiveJob[
   ]);
 
   const seen = new Set<string>();
-  const out: LiveJob[] = [];
-  const pools = results.filter((r) => r.length > 0);
+  const scored: Array<{ job: LiveJob; score: number }> = [];
 
-  // Entrelacement pour équilibrer les sources.
-  let index = 0;
-  while (out.length < limit) {
-    let added = false;
-    for (const pool of pools) {
-      const job = pool[index];
-      if (!job) continue;
-      added = true;
+  for (const pool of results) {
+    for (const job of pool) {
       if (!job.url || !job.title || !job.company) continue;
       if (seen.has(job.url)) continue;
-      if (!matches(job, terms)) continue;
       seen.add(job.url);
-      out.push(job);
-      if (out.length >= limit) break;
+      const score = relevance(job, terms);
+      // Sans mots-clés exploitables on garde tout ; sinon on exige une vraie
+      // correspondance (titre, ou plusieurs occurrences dans l'annonce).
+      if (terms.length > 0 && score < 3) continue;
+      scored.push({ job, score });
     }
-    if (!added) break;
-    index += 1;
   }
-  return out;
+
+  return scored
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((s) => s.job);
 }
+
