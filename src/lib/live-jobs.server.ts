@@ -267,13 +267,16 @@ async function fromJobicy(query: string): Promise<LiveJob[]> {
   });
 }
 
-/** Agrège les sources, filtre sur les mots-clés et déduplique par lien. */
-export async function fetchLiveJobs(query: string, limit = 40): Promise<LiveJob[]> {
-  const terms = query
-    .toLowerCase()
-    .split(/[\s,]+/)
-    .map((t) => t.trim())
-    .filter((t) => t.length > 2);
+/**
+ * Agrège les sources, ne garde que les offres réellement pertinentes
+ * (mots-clés du profil / CV) et les trie par pertinence.
+ */
+export async function fetchLiveJobs(
+  query: string,
+  limit = 40,
+  extraKeywords: string[] = [],
+): Promise<LiveJob[]> {
+  const terms = expandKeywords([query, ...extraKeywords]);
 
   const results = await Promise.all([
     fromArbeitnow(),
@@ -282,26 +285,24 @@ export async function fetchLiveJobs(query: string, limit = 40): Promise<LiveJob[
   ]);
 
   const seen = new Set<string>();
-  const out: LiveJob[] = [];
-  const pools = results.filter((r) => r.length > 0);
+  const scored: Array<{ job: LiveJob; score: number }> = [];
 
-  // Entrelacement pour équilibrer les sources.
-  let index = 0;
-  while (out.length < limit) {
-    let added = false;
-    for (const pool of pools) {
-      const job = pool[index];
-      if (!job) continue;
-      added = true;
+  for (const pool of results) {
+    for (const job of pool) {
       if (!job.url || !job.title || !job.company) continue;
       if (seen.has(job.url)) continue;
-      if (!matches(job, terms)) continue;
       seen.add(job.url);
-      out.push(job);
-      if (out.length >= limit) break;
+      const score = relevance(job, terms);
+      // Sans mots-clés exploitables on garde tout ; sinon on exige une vraie
+      // correspondance (titre, ou plusieurs occurrences dans l'annonce).
+      if (terms.length > 0 && score < 3) continue;
+      scored.push({ job, score });
     }
-    if (!added) break;
-    index += 1;
   }
-  return out;
+
+  return scored
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((s) => s.job);
 }
+
