@@ -103,7 +103,47 @@ export function expandKeywords(sources: string[]): string[] {
 const STOP = new Set([
   "the","and","les","des","pour","avec","dans","une","son","ses","est","sur","cdi","stage",
   "job","jobs","emploi","poste","recherche","travail","work","full","time","remote",
+  // Termes trop génériques : ils faisaient remonter n'importe quel métier (dev, marketing…)
+  "engineer","engineering","ingenieur","technician","technicien","specialist","expert",
+  "senior","junior","manager","assistant","consultant","support","service","services",
+  "systeme","systemes","system","systems","project","projet","team","equipe","office",
 ]);
+
+/**
+ * Familles de métiers : sert à écarter les offres d'un autre corps de métier
+ * (ex. développeur logiciel pour un technicien en automatisme).
+ */
+const FAMILIES: Record<string, string[]> = {
+  industrie: [
+    "automat", "automation", "automatisierung", "plc", "sps", "scada", "tia portal",
+    "electric", "electrical", "electrique", "elektro", "elektriker", "electrician",
+    "maintenance", "instandhaltung", "wartung", "mecanic", "mechanical", "mechanik",
+    "maschinenbau", "industrial", "industrie", "manufacturing", "production", "hvac",
+    "robotic", "roboter", "cnc", "hydraul", "pneumat", "chaudronn", "soudeur", "welder",
+    "energie", "energy", "photovolta", "solar",
+  ],
+  logiciel: [
+    "developer", "developpeur", "développeur", "software", "entwickler", "frontend",
+    "front-end", "backend", "back-end", "fullstack", "full-stack", "javascript",
+    "typescript", "react", "angular", "node", "php", "laravel", "django", "devops",
+    "data scientist", "data analyst", "machine learning", "web", "mobile", "android",
+    "ios", "qa engineer", "sre", "cloud", "cybersecurity", "programmer",
+  ],
+  business: [
+    "marketing", "sales", "vente", "commercial", "account executive", "recruiter",
+    "recrutement", "comptab", "accountant", "finance", "hr ", "ressources humaines",
+    "customer success", "designer", "ux", "ui ", "copywriter", "content",
+  ],
+};
+
+function familiesOf(text: string): Set<string> {
+  const t = normalize(text);
+  const found = new Set<string>();
+  for (const [family, markers] of Object.entries(FAMILIES)) {
+    if (markers.some((m) => t.includes(normalize(m)))) found.add(family);
+  }
+  return found;
+}
 
 /** Score de pertinence : titre = fort, description = faible. */
 function relevance(job: LiveJob, terms: string[]): number {
@@ -118,6 +158,7 @@ function relevance(job: LiveJob, terms: string[]): number {
   }
   return score;
 }
+
 
 
 const EU_COUNTRIES: Record<string, string> = {
