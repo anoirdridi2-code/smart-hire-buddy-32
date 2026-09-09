@@ -525,6 +525,8 @@ export type Database = {
           full_name: string | null
           id: string
           languages: string[] | null
+          sectors: string[]
+          target_roles: string[]
           updated_at: string
           voice_gender: string
         }
@@ -540,6 +542,8 @@ export type Database = {
           full_name?: string | null
           id: string
           languages?: string[] | null
+          sectors?: string[]
+          target_roles?: string[]
           updated_at?: string
           voice_gender?: string
         }
@@ -555,6 +559,8 @@ export type Database = {
           full_name?: string | null
           id?: string
           languages?: string[] | null
+          sectors?: string[]
+          target_roles?: string[]
           updated_at?: string
           voice_gender?: string
         }

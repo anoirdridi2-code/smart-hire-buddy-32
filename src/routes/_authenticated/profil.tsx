@@ -9,6 +9,25 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile, useRefresh } from "@/lib/queries";
 
+const SECTORS = [
+  "Informatique/IT",
+  "Électricité",
+  "Automatisme",
+  "Mécanique",
+  "Maintenance industrielle",
+  "Restauration",
+  "Hôtellerie",
+  "Commerce",
+  "Marketing",
+  "Finance/Comptabilité",
+  "Logistique/Transport",
+  "Santé",
+  "Éducation",
+  "BTP",
+  "Administration",
+  "Autre",
+] as const;
+
 export const Route = createFileRoute("/_authenticated/profil")({
   head: () => ({
     meta: [
@@ -34,6 +53,7 @@ function ProfilePage() {
   const [form, setForm] = useState({
     full_name: "",
     domain: "",
+    target_roles: "",
     experience_years: "",
     countries: "",
     city: "",
@@ -42,12 +62,14 @@ function ProfilePage() {
     contract_type: "",
     voice_gender: "female",
   });
+  const [sectors, setSectors] = useState<string[]>([]);
 
   useEffect(() => {
     if (!profile) return;
     setForm({
       full_name: profile.full_name ?? "",
       domain: profile.domain ?? "",
+      target_roles: (profile.target_roles ?? []).join(", "),
       experience_years: profile.experience_years?.toString() ?? "",
       countries: (profile.countries ?? []).join(", "),
       city: profile.city ?? "",
@@ -56,7 +78,14 @@ function ProfilePage() {
       contract_type: profile.contract_type ?? "",
       voice_gender: profile.voice_gender === "male" ? "male" : "female",
     });
+    setSectors(profile.sectors ?? []);
   }, [profile]);
+
+  function toggleSector(sector: string) {
+    setSectors((prev) =>
+      prev.includes(sector) ? prev.filter((s) => s !== sector) : [...prev, sector],
+    );
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -66,6 +95,11 @@ function ProfilePage() {
       .update({
         full_name: form.full_name.trim().slice(0, 120) || null,
         domain: form.domain.trim().slice(0, 80) || null,
+        sectors,
+        target_roles: form.target_roles
+          .split(",")
+          .map((r) => r.trim())
+          .filter(Boolean),
         experience_years: form.experience_years ? Number(form.experience_years) : null,
         countries: form.countries
           .split(",")
@@ -91,7 +125,8 @@ function ProfilePage() {
 
   const fields: [keyof typeof form, string, string][] = [
     ["full_name", "Nom complet", "Amine Ben Salah"],
-    ["domain", "Domaine", "Informatique, Mécanique, Électrique…"],
+    ["target_roles", "Métiers recherchés", "Serveuse, Réceptionniste hôtel"],
+    ["domain", "Domaine (ancien champ, optionnel)", "Informatique, Mécanique, Électrique…"],
     ["experience_years", "Années d'expérience", "3"],
     ["countries", "Pays souhaités", "Tunisie, France, Canada"],
     ["city", "Ville", "Tunis"],
@@ -117,6 +152,29 @@ function ProfilePage() {
                 />
               </div>
             ))}
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Secteur(s) d'activité</Label>
+              <div className="flex flex-wrap gap-2">
+                {SECTORS.map((sector) => (
+                  <button
+                    key={sector}
+                    type="button"
+                    onClick={() => toggleSector(sector)}
+                    className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
+                      sectors.includes(sector)
+                        ? "border-primary bg-primary/10"
+                        : "border-border/70 hover:bg-muted"
+                    }`}
+                  >
+                    {sector}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Vous pouvez sélectionner plusieurs secteurs. Utilisé pour trouver des offres
+                réellement pertinentes pour votre métier.
+              </p>
+            </div>
             <div className="space-y-2 sm:col-span-2">
               <Label>Voix de l'assistant IA</Label>
               <div className="flex gap-2">
