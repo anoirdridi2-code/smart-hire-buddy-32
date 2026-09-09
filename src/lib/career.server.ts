@@ -80,16 +80,47 @@ ${ANALYSIS_SCHEMA}`;
   ]);
 }
 
+/** Poids fixes du score final — appliqués en TypeScript, jamais laissés au LLM. */
+const MATCH_WEIGHTS = {
+  role_match: 0.4,
+  skills: 0.3,
+  experience: 0.15,
+  language: 0.1,
+  education: 0.05,
+} as const;
+
+function clampScore(value: unknown): number {
+  const n = typeof value === "number" && Number.isFinite(value) ? value : 0;
+  return Math.max(0, Math.min(100, Math.round(n)));
+}
+
 export async function matchCvToJob(input: {
   analysis: CvAnalysis;
   cvText: string;
   job: { title: string; company: string; description: string; level?: string | null; location?: string | null };
 }): Promise<MatchResult> {
-  return aiJson<MatchResult>([
+  const raw = await aiJson<{
+    breakdown: {
+      role_match: number;
+      skills: number;
+      experience: number;
+      language: number;
+      education: number;
+    };
+    reasoning: string;
+    missing: string[];
+  }>([
     {
       role: "system",
       content:
-        "Tu es un moteur de matching CV/offre. Tu notes avec rigueur, sans complaisance. Réponds uniquement en JSON valide, en français.",
+        "Tu es un moteur de matching CV/offre spécialisé en adéquation métier. Tu notes avec rigueur, sans complaisance. " +
+        "Ta priorité absolue est de vérifier si le métier/poste du candidat correspond réellement au métier de l'offre, " +
+        "avant même de regarder les compétences. Un candidat dont le métier principal est totalement différent de celui de " +
+        "l'offre (ex. serveur/serveuse vs développeur logiciel) doit recevoir un role_match très bas (proche de 0-15), " +
+        "même si le CV mentionne des soft skills génériques comme communication, organisation, travail en équipe ou motivation : " +
+        "ces éléments génériques ne doivent JAMAIS compenser une incompatibilité de métier. Le role_match ne doit être élevé que si " +
+        "l'intitulé, les missions ou le secteur du poste occupé par le candidat correspondent concrètement à ceux de l'offre. " +
+        "Ne renvoie jamais de score global toi-même : renvoie uniquement les 5 sous-scores demandés. Réponds uniquement en JSON valide, en français.",
     },
     {
       role: "user",
@@ -112,10 +143,35 @@ Lieu: ${input.job.location ?? ""}
 Niveau: ${input.job.level ?? ""}
 Description: ${input.job.description}
 
+Évalue d'abord si le métier du candidat (déduit de ses expériences, pas seulement de mots-clés isolés) correspond au métier de l'offre.
 Renvoie ce JSON :
-{"score": 0-100, "breakdown": {"skills":0-100,"experience":0-100,"language":0-100,"education":0-100}, "reasoning": "2-3 phrases", "missing": ["compétences manquantes"]}`,
+{"breakdown": {"role_match":0-100,"skills":0-100,"experience":0-100,"language":0-100,"education":0-100}, "reasoning": "2-3 phrases expliquant surtout l'adéquation ou non du métier", "missing": ["compétences manquantes"]}`,
     },
   ]);
+
+  const breakdown = {
+    role_match: clampScore(raw.breakdown?.role_match),
+    skills: clampScore(raw.breakdown?.skills),
+    experience: clampScore(raw.breakdown?.experience),
+    language: clampScore(raw.breakdown?.language),
+    education: clampScore(raw.breakdown?.education),
+  };
+
+  // Score final calculé de façon déterministe en TypeScript, jamais par le LLM.
+  const score = clampScore(
+    breakdown.role_match * MATCH_WEIGHTS.role_match +
+      breakdown.skills * MATCH_WEIGHTS.skills +
+      breakdown.experience * MATCH_WEIGHTS.experience +
+      breakdown.language * MATCH_WEIGHTS.language +
+      breakdown.education * MATCH_WEIGHTS.education,
+  );
+
+  return {
+    score,
+    breakdown,
+    reasoning: raw.reasoning ?? "",
+    missing: Array.isArray(raw.missing) ? raw.missing : [],
+  };
 }
 
 export async function parseJobPosting(raw: string): Promise<ParsedJob> {

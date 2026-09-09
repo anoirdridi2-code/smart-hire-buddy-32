@@ -688,11 +688,23 @@ export const fetchLiveJobsFn = createServerFn({ method: "POST" })
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("domain")
+      .select("domain, sectors, target_roles")
       .eq("id", userId)
       .maybeSingle();
     const domain = (profile?.domain as string | null) ?? "";
-    if (domain) keywords.push(domain);
+    const sectors = (profile?.sectors as string[] | null) ?? [];
+    const targetRoles = (profile?.target_roles as string[] | null) ?? [];
+    // Priorité au profil métier/secteur structuré (Phase 2) : `target_roles` et `sectors`
+    // alimentent les mots-clés en complément de ceux du CV. L'ancien champ libre `domain`
+    // ne sert de repli que si les deux nouveaux champs sont vides (compatibilité totale
+    // avec les profils non migrés) — il n'est jamais ajouté en plus, pour ne pas diluer
+    // la recherche avec un texte libre imprécis quand des données structurées existent déjà.
+    if (targetRoles.length > 0 || sectors.length > 0) {
+      targetRoles.forEach((r) => keywords.push(r));
+      sectors.forEach((s) => keywords.push(s));
+    } else if (domain) {
+      keywords.push(domain);
+    }
 
     // Mots-clés issus du CV le plus récent (métier + compétences réelles).
     const { data: cv } = await supabase
@@ -716,7 +728,10 @@ export const fetchLiveJobsFn = createServerFn({ method: "POST" })
     }
 
     if (!query) {
-      query = analysis?.experiences?.[0]?.title?.trim() || domain;
+      // Terme de recherche principal : priorité au métier concret le plus récent du CV,
+      // puis au(x) métier(s) recherché(s) déclaré(s) (Phase 2), puis au secteur, et enfin
+      // à l'ancien champ libre `domain` en tout dernier recours.
+      query = analysis?.experiences?.[0]?.title?.trim() || targetRoles[0] || sectors[0] || domain;
     }
 
     const { fetchLiveJobs } = await import("./live-jobs.server");

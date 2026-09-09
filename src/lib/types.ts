@@ -21,6 +21,7 @@ export type CvAnalysis = {
 export type MatchResult = {
   score: number;
   breakdown: {
+    role_match?: number;
     skills: number;
     experience: number;
     language: number;
