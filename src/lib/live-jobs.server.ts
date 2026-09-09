@@ -318,6 +318,8 @@ export async function fetchLiveJobs(
   extraKeywords: string[] = [],
 ): Promise<LiveJob[]> {
   const terms = expandKeywords([query, ...extraKeywords]);
+  // Famille de métier du candidat, déduite du poste recherché et du CV.
+  const profileFamilies = familiesOf([query, ...extraKeywords].join(" "));
 
   const results = await Promise.all([
     fromArbeitnow(),
@@ -333,6 +335,19 @@ export async function fetchLiveJobs(
       if (!job.url || !job.title || !job.company) continue;
       if (seen.has(job.url)) continue;
       seen.add(job.url);
+
+      if (profileFamilies.size > 0) {
+        // Une offre d'un autre corps de métier est écartée, même si des mots-clés
+        // génériques (systèmes, maintenance logicielle…) coïncident.
+        const jobFamilies = familiesOf(`${job.title} ${job.description.slice(0, 400)}`);
+        const titleFamilies = familiesOf(job.title);
+        const conflicting =
+          titleFamilies.size > 0 && ![...titleFamilies].some((f) => profileFamilies.has(f));
+        const noOverlap =
+          jobFamilies.size > 0 && ![...jobFamilies].some((f) => profileFamilies.has(f));
+        if (conflicting || noOverlap) continue;
+      }
+
       const score = relevance(job, terms);
       // Sans mots-clés exploitables on garde tout ; sinon on exige une vraie
       // correspondance (titre, ou plusieurs occurrences dans l'annonce).
@@ -340,6 +355,7 @@ export async function fetchLiveJobs(
       scored.push({ job, score });
     }
   }
+
 
   return scored
     .sort((a, b) => b.score - a.score)
