@@ -385,6 +385,14 @@ export async function fetchLiveJobs(
         const noOverlap =
           jobFamilies.size > 0 && ![...jobFamilies].some((f) => profileFamilies.has(f));
         if (conflicting || noOverlap) continue;
+        // Métier indéterminé (aucun marqueur famille ni dans le titre ni dans la
+        // description) : on n'accepte plus l'offre par défaut, il faut une vraie
+        // correspondance dans le titre.
+        if (titleFamilies.size === 0 && jobFamilies.size === 0) {
+          const titleText = normalize(job.title);
+          const titleHit = terms.some((t) => !STOP.has(t) && titleText.includes(t));
+          if (!titleHit) continue;
+        }
       }
 
       const score = relevance(job, terms);
