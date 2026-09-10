@@ -76,7 +76,42 @@ const SYNONYMS: Record<string, string[]> = {
   data: ["data", "analyst", "scientist"],
   energie: ["energy", "energie", "photovoltaic", "solar", "renewable"],
   robotique: ["robotics", "roboter"],
+  electrotechnique: ["electrical engineer", "electrotechnics", "elektrotechnik"],
+  electromecanique: ["electromechanical technician", "electromechanical", "elektromechanik"],
+  instrumentation: ["instrumentation", "instrumentation technician", "messtechnik"],
+  controle: ["controls engineer", "control systems", "leittechnik"],
+  automaticien: ["automation technician", "plc engineer", "automatisierungstechniker"],
 };
+
+/**
+ * Requêtes envoyées aux APIs anglophones (Remotive / Jobicy).
+ * Réutilise SYNONYMS pour traduire les métiers déclarés (FR) en termes EN/DE.
+ */
+export function buildSearchQueries(sources: string[], max = 4): string[] {
+  const queries: string[] = [];
+  const push = (q: string) => {
+    const v = q.trim();
+    if (v && !queries.some((x) => x.toLowerCase() === v.toLowerCase())) queries.push(v);
+  };
+
+  for (const source of sources) {
+    if (!source?.trim()) continue;
+    const norm = normalize(source);
+    let translated = false;
+    for (const [key, syns] of Object.entries(SYNONYMS)) {
+      if (norm.includes(key.slice(0, 6))) {
+        syns.slice(0, 2).forEach((s) => {
+          push(s);
+          translated = true;
+        });
+      }
+    }
+    if (!translated) push(source.trim());
+    if (queries.length >= max) break;
+  }
+
+  return queries.slice(0, max);
+}
 
 function normalize(input: string): string {
   return input
