@@ -1,7 +1,5 @@
 /**
  * Récupération d'offres d'emploi RÉELLES depuis des sources publiques autorisées.
- * LinkedIn / Indeed / TanitJobs / Welcome to the Jungle bloquent la récupération
- * automatique : pour ces sites on fournit des liens de recherche directs (job-sites.ts).
  */
 
 export type LiveJob = {
@@ -44,7 +42,6 @@ async function getJson<T>(url: string, ms = 15000): Promise<T | null> {
   finally { clearTimeout(timer); }
 }
 
-/** Mots-clés multilingues centrés sur les métiers industriels. */
 const SYNONYMS: Record<string, string[]> = {
   electrique: ["electrical", "electrician", "electrical engineer", "elektro", "elektrotechnik"],
   electricite: ["electrical", "electrician", "electrical engineer", "elektro"],
@@ -71,6 +68,16 @@ const INDUSTRIAL_CORE = [
   "maintenance technician", "maintenance engineer", "electrical technician", "electrical engineering",
   "electrical engineer", "electromechanical", "electrotechnics", "instrumentation", "control systems",
   "industrial", "manufacturing", "production", "robotics", "cnc", "hvac", "hydraulic", "pneumatic",
+];
+
+const INDUSTRIAL_STRONG = [
+  "automation", "automatisierung", "plc", "sps", "scada", "controls", "industrial maintenance",
+  "maintenance technician", "maintenance engineer", "electrical technician", "electrical engineer",
+  "electrical engineering", "electromechanical", "electrotechnics", "instrumentation", "control systems",
+  "robotics", "cnc", "hvac", "hydraulic", "pneumatic", "electrician", "electrical maintenance",
+  "automaticien", "automatisme", "electrotechnicien", "electricien", "technicien maintenance",
+  "technicien electricite", "ingenieur maintenance", "ingenieur automatisme", "ingenieur electrique",
+  "technicien electromecanique", "technicien instrumentation", "ingenieur electrique",
 ];
 
 const EXCLUDED_FAMILIES: Record<string, string[]> = {
@@ -101,7 +108,11 @@ const STOP = new Set([
   "the","and","les","des","pour","avec","dans","une","son","ses","est","sur","cdi","stage","job","jobs","emploi","poste","recherche","travail","work","full","time","remote","engineer","engineering","ingenieur","technician","technicien","specialist","expert","senior","junior","manager","assistant","consultant","support","service","services","systeme","systemes","system","systems","project","projet","team","equipe","office",
 ]);
 
-const INDUSTRIAL_FAMILIES = ["industrie", "electricite", "automatisme", "maintenance", "electrotechnique", "electromecanique", "instrumentation", "controle", "robotique", "energie", "mecanique"];
+const INDUSTRIAL_FAMILIES = [
+  "industrie", "electricite", "automatisme", "maintenance", "electrotechnique", "electromecanique",
+  "instrumentation", "controle", "robotique", "energie", "mecanique", "industrial", "automation",
+  "electrical", "electromechanical", "electrotechnics", "manufacturing", "plc", "scada", "controls",
+];
 function profileHasIndustrialFamily(text: string): boolean {
   return INDUSTRIAL_FAMILIES.some((x) => normalize(text).includes(normalize(x).slice(0, 6)));
 }
@@ -111,9 +122,11 @@ function excludedFamily(text: string): string | null {
   return null;
 }
 function isStrongIndustrialTitle(title: string): boolean {
-  const t = normalize(title);
-  return INDUSTRIAL_CORE.some((m) => t.includes(normalize(m))) ||
-    ["automaticien", "electrotechnicien", "electrotechnicien", "electricien", "electrician", "electrical technician", "maintenance technician", "maintenance engineer", "technicien maintenance", "technicien maintenance industrielle", "ingenieur maintenance", "ingenieur automatisme", "ingenieur electrique", "ingenieur electricite", "technicien electricite", "technicien electromecanique", "technicien instrumentation", "control engineer", "automation engineer", "automation technician", "plc engineer", "industrial engineer", "industrial maintenance"].some((m) => t.includes(normalize(m)));
+  return hasAny(title, INDUSTRIAL_STRONG);
+}
+function industrialSignalCount(text: string): number {
+  const t = normalize(text);
+  return INDUSTRIAL_STRONG.filter((m) => t.includes(normalize(m))).length;
 }
 function relevance(job: LiveJob, terms: string[]): number {
   const title = normalize(job.title);
@@ -124,7 +137,7 @@ function relevance(job: LiveJob, terms: string[]): number {
     if (title.includes(term)) score += 5;
     else if (body.includes(term)) score += 1;
   }
-  if (isStrongIndustrialTitle(job.title)) score += 8;
+  if (isStrongIndustrialTitle(job.title)) score += 10;
   return score;
 }
 
@@ -135,7 +148,7 @@ type ArbeitnowJob = { title: string; company_name: string; description: string; 
 async function fromArbeitnow(): Promise<LiveJob[]> {
   const data = await getJson<{ data: ArbeitnowJob[] }>("https://www.arbeitnow.com/api/job-board-api", 25000);
   if (!data?.data) return [];
-  return data.data.map((j) => ({ title: j.title, company: j.company_name, description: clean(j.description), url: j.url, location: j.location || null, country: guessCountry(j.location) ?? "Allemagne", contract_type: Array.isArray(j.job_types) ? j.job_types[0] ?? null : null, level: null, salary: null, source: "Arbeitnow (Europe)", posted_at: j.created_at ? new Date(Number(j.created_at) * 1000).toISOString().slice(0, 10) : null, remote: String(j.remote) === "true" || j.remote === true ? "Télétravail" : null }));
+  return data.data.map((j) => ({ title: j.title, company: j.company_name, description: clean(j.description), url: j.url, location: j.location || null, country: guessCountry(j.location), contract_type: Array.isArray(j.job_types) ? j.job_types[0] ?? null : null, level: null, salary: null, source: "Arbeitnow (Europe)", posted_at: j.created_at ? new Date(Number(j.created_at) * 1000).toISOString().slice(0, 10) : null, remote: String(j.remote) === "true" || j.remote === true ? "Télétravail" : null }));
 }
 
 type RemotiveJob = { title: string; company_name: string; description: string; url: string; candidate_required_location: string; job_type: string; salary: string; publication_date: string };
@@ -178,15 +191,15 @@ export async function fetchLiveJobs(query: string, limit = 40, extraKeywords: st
     if (excludedFamily(text)) continue;
     if (industrialProfile) {
       const titleStrong = isStrongIndustrialTitle(job.title);
-      const industrialBody = hasAny(text, INDUSTRIAL_CORE);
-      // Pour un profil industriel, le titre doit porter un signal métier clair,
-      // sauf si l'annonce contient plusieurs signaux industriels cohérents.
-      const coreHits = INDUSTRIAL_CORE.filter((m) => normalize(text).includes(normalize(m))).length;
-      if (!titleStrong && coreHits < 2) continue;
-      if (coreHits === 0) continue;
+      const signalCount = industrialSignalCount(text);
+      // Un métier industriel doit être explicite dans le titre, ou confirmé par
+      // plusieurs signaux techniques cohérents. Les seuls mots "engineer",
+      // "industrial", "maintenance" ou "production" ne suffisent plus.
+      if (!titleStrong && signalCount < 2) continue;
+      if (signalCount === 0) continue;
     }
     const score = relevance(job, terms);
-    if (score < (industrialProfile ? 5 : 3)) continue;
+    if (score < (industrialProfile ? 7 : 3)) continue;
     scored.push({ job, score });
   }
   return scored.sort((a, b) => b.score - a.score).slice(0, limit).map((s) => s.job);
