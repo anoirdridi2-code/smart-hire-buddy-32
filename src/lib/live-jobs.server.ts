@@ -97,13 +97,13 @@ export function buildSearchQueries(sources: string[], max = 4): string[] {
   for (const source of sources) {
     if (!source?.trim()) continue;
     const norm = normalize(source);
+    // Une seule requête par métier déclaré : chaque target_role contribue,
+    // aucun ne monopolise le quota de requêtes.
     let translated = false;
     for (const [key, syns] of Object.entries(SYNONYMS)) {
-      if (norm.includes(key.slice(0, 6))) {
-        syns.slice(0, 2).forEach((s) => {
-          push(s);
-          translated = true;
-        });
+      if (!translated && norm.includes(key.slice(0, 6)) && syns[0]) {
+        push(syns[0]);
+        translated = true;
       }
     }
     if (!translated) push(source.trim());
