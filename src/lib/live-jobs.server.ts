@@ -351,15 +351,19 @@ export async function fetchLiveJobs(
   query: string,
   limit = 40,
   extraKeywords: string[] = [],
+  roles: string[] = [],
 ): Promise<LiveJob[]> {
   const terms = expandKeywords([query, ...extraKeywords]);
   // Famille de métier du candidat, déduite du poste recherché et du CV.
   const profileFamilies = familiesOf([query, ...extraKeywords].join(" "));
 
+  // Plusieurs requêtes traduites (EN/DE) au lieu d'une seule chaîne FR brute.
+  const queries = buildSearchQueries([...roles, query].filter(Boolean), 4);
+  const searchTerms = queries.length > 0 ? queries : [query];
+
   const results = await Promise.all([
     fromArbeitnow(),
-    fromRemotive(query),
-    fromJobicy(query),
+    ...searchTerms.flatMap((q) => [fromRemotive(q), fromJobicy(q)]),
   ]);
 
   const seen = new Set<string>();
