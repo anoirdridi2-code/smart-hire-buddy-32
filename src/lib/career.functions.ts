@@ -735,7 +735,17 @@ export const fetchLiveJobsFn = createServerFn({ method: "POST" })
     }
 
     const { fetchLiveJobs } = await import("./live-jobs.server");
-    const live = await fetchLiveJobs(query, 40, keywords);
+    // Tous les métiers recherchés (et non le seul premier) alimentent les requêtes
+    // envoyées aux APIs externes, complétés par les secteurs et les intitulés du CV.
+    const roles = [
+      ...targetRoles,
+      ...(analysis?.experiences ?? []).slice(0, 2).map((e) => e?.title ?? ""),
+      ...sectors,
+      domain,
+    ]
+      .map((r) => (r ?? "").trim())
+      .filter(Boolean);
+    const live = await fetchLiveJobs(query, 40, keywords, roles);
     if (live.length === 0) {
       throw new Error(
         "Aucune offre correspondant à votre profil pour le moment. Essayez un autre mot-clé.",

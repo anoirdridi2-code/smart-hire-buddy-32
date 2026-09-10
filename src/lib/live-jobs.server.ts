@@ -76,7 +76,42 @@ const SYNONYMS: Record<string, string[]> = {
   data: ["data", "analyst", "scientist"],
   energie: ["energy", "energie", "photovoltaic", "solar", "renewable"],
   robotique: ["robotics", "roboter"],
+  electrotechnique: ["electrical engineer", "electrotechnics", "elektrotechnik"],
+  electromecanique: ["electromechanical technician", "electromechanical", "elektromechanik"],
+  instrumentation: ["instrumentation", "instrumentation technician", "messtechnik"],
+  controle: ["controls engineer", "control systems", "leittechnik"],
+  automaticien: ["automation technician", "plc engineer", "automatisierungstechniker"],
 };
+
+/**
+ * Requêtes envoyées aux APIs anglophones (Remotive / Jobicy).
+ * Réutilise SYNONYMS pour traduire les métiers déclarés (FR) en termes EN/DE.
+ */
+export function buildSearchQueries(sources: string[], max = 4): string[] {
+  const queries: string[] = [];
+  const push = (q: string) => {
+    const v = q.trim();
+    if (v && !queries.some((x) => x.toLowerCase() === v.toLowerCase())) queries.push(v);
+  };
+
+  for (const source of sources) {
+    if (!source?.trim()) continue;
+    const norm = normalize(source);
+    // Une seule requête par métier déclaré : chaque target_role contribue,
+    // aucun ne monopolise le quota de requêtes.
+    let translated = false;
+    for (const [key, syns] of Object.entries(SYNONYMS)) {
+      if (!translated && norm.includes(key.slice(0, 6)) && syns[0]) {
+        push(syns[0]);
+        translated = true;
+      }
+    }
+    if (!translated) push(source.trim());
+    if (queries.length >= max) break;
+  }
+
+  return queries.slice(0, max);
+}
 
 function normalize(input: string): string {
   return input
@@ -316,15 +351,19 @@ export async function fetchLiveJobs(
   query: string,
   limit = 40,
   extraKeywords: string[] = [],
+  roles: string[] = [],
 ): Promise<LiveJob[]> {
   const terms = expandKeywords([query, ...extraKeywords]);
   // Famille de métier du candidat, déduite du poste recherché et du CV.
   const profileFamilies = familiesOf([query, ...extraKeywords].join(" "));
 
+  // Plusieurs requêtes traduites (EN/DE) au lieu d'une seule chaîne FR brute.
+  const queries = buildSearchQueries([...roles, query].filter(Boolean), 4);
+  const searchTerms = queries.length > 0 ? queries : [query];
+
   const results = await Promise.all([
     fromArbeitnow(),
-    fromRemotive(query),
-    fromJobicy(query),
+    ...searchTerms.flatMap((q) => [fromRemotive(q), fromJobicy(q)]),
   ]);
 
   const seen = new Set<string>();
@@ -346,6 +385,14 @@ export async function fetchLiveJobs(
         const noOverlap =
           jobFamilies.size > 0 && ![...jobFamilies].some((f) => profileFamilies.has(f));
         if (conflicting || noOverlap) continue;
+        // Métier indéterminé (aucun marqueur famille ni dans le titre ni dans la
+        // description) : on n'accepte plus l'offre par défaut, il faut une vraie
+        // correspondance dans le titre.
+        if (titleFamilies.size === 0 && jobFamilies.size === 0) {
+          const titleText = normalize(job.title);
+          const titleHit = terms.some((t) => !STOP.has(t) && titleText.includes(t));
+          if (!titleHit) continue;
+        }
       }
 
       const score = relevance(job, terms);
