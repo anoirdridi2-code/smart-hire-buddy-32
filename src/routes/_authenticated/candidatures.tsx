@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/candidatures")({
       { property: "og:title", content: "Suivi des candidatures — Karriera" },
       {
         property: "og:description",
-        content: "Un pipeline clair pour ne perdre aucune opportunité.",
+        content: "Un suivi clair pour ne perdre aucune opportunité.",
       },
     ],
   }),
@@ -41,10 +41,10 @@ function ApplicationsPage() {
   }
 
   return (
-    <AppShell title="Candidatures" description="Le pipeline de vos opportunités">
+    <AppShell title="Candidatures" description="Suivez l'avancement de vos opportunités">
       {(applications ?? []).length === 0 && (
         <p className="text-sm text-muted-foreground">
-          Aucune candidature enregistrée. Postulez depuis la page Offres.
+          Aucune candidature enregistrée. Recherchez une offre depuis la page Recherche d'emploi.
         </p>
       )}
       <div className="space-y-3">
