@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { APPLICATION_STATUSES, type ApplicationStatus } from "@/lib/types";
-import { ArrowRight, FileText, Target, TrendingUp } from "lucide-react";
+import { ArrowRight, FileText, Search, TrendingUp } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/tableau-de-bord")({
   head: () => ({
@@ -15,19 +15,19 @@ export const Route = createFileRoute("/_authenticated/tableau-de-bord")({
       {
         name: "description",
         content:
-          "Suivez votre score CV, vos meilleures offres compatibles et l'avancement de vos candidatures.",
+          "Suivez votre score CV, découvrez des offres adaptées à votre recherche et suivez vos candidatures.",
       },
       { property: "og:title", content: "Tableau de bord — Karriera" },
       {
         property: "og:description",
-        content: "Score ATS, matching des offres et suivi des candidatures en un coup d'œil.",
+        content: "Score ATS, recherche d'emploi et suivi des candidatures en un coup d'œil.",
       },
     ],
   }),
   component: Dashboard,
 });
 
-function ScoreCard({ label, value, icon: Icon }: { label: string; value: number | null; icon: typeof Target }) {
+function ScoreCard({ label, value, icon: Icon }: { label: string; value: number | null; icon: typeof Search }) {
   return (
     <Card className="panel">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -35,7 +35,9 @@ function ScoreCard({ label, value, icon: Icon }: { label: string; value: number 
         <Icon className="size-4 text-primary" />
       </CardHeader>
       <CardContent>
-        <div className="font-display text-3xl font-semibold">{value ?? "—"}{value != null && <span className="text-lg text-muted-foreground">/100</span>}</div>
+        <div className="font-display text-3xl font-semibold">
+          {value ?? "—"}{value != null && <span className="text-lg text-muted-foreground">/100</span>}
+        </div>
         <Progress value={value ?? 0} className="mt-3" />
       </CardContent>
     </Card>
@@ -69,7 +71,7 @@ function Dashboard() {
             <div>
               <h2 className="font-display text-lg font-semibold">Commencez par votre CV</h2>
               <p className="text-sm text-muted-foreground">
-                Importez votre CV (PDF ou Word) pour lancer l'analyse IA et le matching.
+                Importez votre CV (PDF ou Word) pour lancer l'analyse IA et optimiser vos candidatures.
               </p>
             </div>
             <Button asChild>
@@ -83,23 +85,23 @@ function Dashboard() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <ScoreCard label="Score global" value={cv?.global_score ?? null} icon={TrendingUp} />
-        <ScoreCard label="Compatibilité ATS" value={cv?.ats_score ?? null} icon={Target} />
+        <ScoreCard label="Compatibilité ATS" value={cv?.ats_score ?? null} icon={Search} />
         <ScoreCard label="Lisibilité" value={cv?.readability_score ?? null} icon={FileText} />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card className="panel">
           <CardHeader>
-            <CardTitle className="font-display text-base">Meilleures offres pour vous</CardTitle>
+            <CardTitle className="font-display text-base">Offres suggérées</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {topMatches.length === 0 && (
               <p className="text-sm text-muted-foreground">
-                Aucun matching pour l'instant.{" "}
+                Aucune offre enregistrée pour l'instant. {" "}
                 <Link to="/offres" className="text-primary underline-offset-4 hover:underline">
-                  Lancez le matching sur les offres
-                </Link>
-                .
+                  Recherchez un métier
+                </Link>{" "}
+                pour découvrir des opportunités.
               </p>
             )}
             {topMatches.map((m) => (
