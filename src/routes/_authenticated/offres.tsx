@@ -17,6 +17,51 @@ import { fetchLiveJobsFn, importJobFn } from "@/lib/career.functions";
 
 type Job = NonNullable<ReturnType<typeof useJobs>["data"]>[number];
 
+const PROFESSION_ALIASES: Record<string, string[]> = {
+  automaticien: ["automaticien", "automatisme", "automation", "automation technician", "automation engineer", "plc", "sps", "scada", "controls", "automatisierungstechniker"],
+  automatisme: ["automatisme", "automaticien", "automation", "automation technician", "automation engineer", "plc", "sps", "scada", "controls"],
+  maintenance: ["maintenance", "technicien maintenance", "maintenance technician", "maintenance engineer", "instandhaltung", "wartung"],
+  electrique: ["électrique", "electrique", "électricité", "electricite", "electrical", "electrician", "electrical engineer", "electrical technician", "elektro", "elektrotechnik"],
+  electricite: ["électricité", "electricite", "electrical", "electrician", "electrical engineer", "electrical technician", "elektro", "elektrotechnik"],
+  electromecanique: ["électromécanique", "electromecanique", "electromechanical", "electromechanical technician", "electromechanical engineer", "elektromechanik"],
+  electrotechnique: ["électrotechnique", "electrotechnique", "electrotechnics", "electrical engineering", "electrical technician", "elektrotechnik"],
+  instrumentation: ["instrumentation", "instrumentation technician", "instrumentation engineer", "messtechnik"],
+  robotique: ["robotique", "robotics", "robotics technician", "robotics engineer"],
+  energie: ["énergie", "energie", "energy engineer", "electrical energy", "photovoltaic", "solar", "renewable"],
+  mecanique: ["mécanique", "mecanique", "mechanical", "mechanical technician", "mechanik", "maschinenbau"],
+  serveur: ["serveur", "serveuse", "waiter", "waitress", "server", "restaurant server", "food service"],
+  cuisinier: ["cuisinier", "cuisinière", "cook", "chef", "kitchen", "commis de cuisine"],
+};
+
+function normalizeSearch(value: string): string {
+  return value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9+#.]+/g, " ").trim();
+}
+
+function professionTerms(query: string): string[] {
+  const normalized = normalizeSearch(query);
+  const terms = new Set<string>(normalized.split(/\s+/).filter((term) => term.length > 2));
+  for (const [key, aliases] of Object.entries(PROFESSION_ALIASES)) {
+    if (normalized.includes(key)) aliases.forEach((alias) => terms.add(normalizeSearch(alias)));
+  }
+  return [...terms];
+}
+
+function jobMatchesProfession(job: Job, query: string): boolean {
+  const terms = professionTerms(query);
+  if (terms.length === 0) return true;
+  const title = normalizeSearch(String(job.title ?? ""));
+  const description = normalizeSearch(String(job.description ?? ""));
+  const searchableTitle = ` ${title} `;
+
+  // The title is the authoritative signal. Description matches are only a fallback
+  // when the title contains a concrete profession-family signal.
+  if (terms.some((term) => searchableTitle.includes(` ${term} `) || searchableTitle.includes(term))) return true;
+
+  const strongTerms = terms.filter((term) => term.length >= 5);
+  const descriptionHits = strongTerms.filter((term) => description.includes(term)).length;
+  return descriptionHits >= 2;
+}
+
 export const Route = createFileRoute("/_authenticated/offres")({
   head: () => ({
     meta: [
@@ -66,14 +111,11 @@ function JobsPage() {
   const visibleJobs = useMemo(() => {
     const source = jobs ?? [];
     if (!lastSearch) return [];
-
-    const terms = lastSearch.toLowerCase().split(/\s+/).filter((term) => term.length > 2);
+    const query = lastSearch.trim();
     return source.filter((job) => {
-      const title = String(job.title ?? "").toLowerCase();
-      const jobLocation = `${job.location ?? ""} ${job.country ?? ""}`.toLowerCase();
-      const titleMatch = terms.length === 0 || terms.some((term) => title.includes(term));
-      const locationMatch = !location.trim() || jobLocation.includes(location.trim().toLowerCase());
-      return titleMatch && locationMatch;
+      const locationText = normalizeSearch(`${job.location ?? ""} ${job.country ?? ""}`);
+      const locationMatch = !location.trim() || locationText.includes(normalizeSearch(location.trim()));
+      return locationMatch && jobMatchesProfession(job, query);
     });
   }, [jobs, lastSearch, location]);
 
