@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { APPLICATION_STATUSES, type ApplicationStatus } from "@/lib/types";
-import { ArrowRight, FileText, Search, TrendingUp } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, FileText, Search, TrendingUp } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/tableau-de-bord")({
   head: () => ({
@@ -14,13 +14,12 @@ export const Route = createFileRoute("/_authenticated/tableau-de-bord")({
       { title: "Tableau de bord — Karriera" },
       {
         name: "description",
-        content:
-          "Suivez votre score CV, découvrez des offres adaptées à votre recherche et suivez vos candidatures.",
+        content: "Suivez votre profil, découvrez des opportunités et gardez vos candidatures sous contrôle.",
       },
       { property: "og:title", content: "Tableau de bord — Karriera" },
       {
         property: "og:description",
-        content: "Score ATS, recherche d'emploi et suivi des candidatures en un coup d'œil.",
+        content: "Profil, recherche d'emploi et suivi des candidatures en un coup d'œil.",
       },
     ],
   }),
@@ -29,14 +28,16 @@ export const Route = createFileRoute("/_authenticated/tableau-de-bord")({
 
 function ScoreCard({ label, value, icon: Icon }: { label: string; value: number | null; icon: typeof Search }) {
   return (
-    <Card className="panel">
+    <Card className="rounded-2xl border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-        <Icon className="size-4 text-primary" />
+        <CardTitle className="text-sm font-medium text-slate-500">{label}</CardTitle>
+        <span className="grid size-9 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
+          <Icon className="size-4" />
+        </span>
       </CardHeader>
       <CardContent>
-        <div className="font-display text-3xl font-semibold">
-          {value ?? "—"}{value != null && <span className="text-lg text-muted-foreground">/100</span>}
+        <div className="font-display text-3xl font-semibold text-slate-950">
+          {value ?? "—"}{value != null && <span className="text-lg font-normal text-slate-400">/100</span>}
         </div>
         <Progress value={value ?? 0} className="mt-3" />
       </CardContent>
@@ -66,22 +67,38 @@ function Dashboard() {
   return (
     <AppShell title="Tableau de bord" description="Votre progression en un coup d'œil">
       {!isLoading && !cv && (
-        <Card className="panel mb-6 border-primary/40">
-          <CardContent className="flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="font-display text-lg font-semibold">Commencez par votre CV</h2>
-              <p className="text-sm text-muted-foreground">
-                Importez votre CV (PDF ou Word) pour lancer l'analyse IA et optimiser vos candidatures.
-              </p>
+        <Card className="mb-6 overflow-hidden rounded-2xl border-indigo-100 bg-gradient-to-r from-indigo-50 via-white to-violet-50 shadow-sm">
+          <CardContent className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-4">
+              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white text-indigo-600 shadow-sm">
+                <FileText className="size-5" />
+              </span>
+              <div>
+                <h2 className="font-display text-lg font-semibold text-slate-950">Complétez votre profil CV</h2>
+                <p className="mt-1 max-w-xl text-sm leading-6 text-slate-600">
+                  Analysez votre CV pour obtenir un score ATS, améliorer sa lisibilité et préparer vos prochaines candidatures.
+                </p>
+              </div>
             </div>
-            <Button asChild>
-              <Link to="/cv">
-                Importer mon CV <ArrowRight className="ml-1 size-4" />
-              </Link>
+            <Button asChild className="shrink-0">
+              <Link to="/cv">Ajouter mon CV <ArrowRight className="ml-1 size-4" /></Link>
             </Button>
           </CardContent>
         </Card>
       )}
+
+      <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="grid size-9 place-items-center rounded-xl bg-indigo-50 text-indigo-600"><BriefcaseBusiness className="size-4" /></span>
+            <h2 className="font-display text-base font-semibold text-slate-950">Prêt pour votre prochaine opportunité ?</h2>
+          </div>
+          <p className="mt-1 text-sm text-slate-500">Saisissez simplement le métier que vous recherchez et explorez les offres disponibles dans le monde.</p>
+        </div>
+        <Button asChild variant="outline" className="shrink-0 border-indigo-200 text-indigo-700 hover:bg-indigo-50">
+          <Link to="/offres">Rechercher un métier <Search className="ml-2 size-4" /></Link>
+        </Button>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <ScoreCard label="Score global" value={cv?.global_score ?? null} icon={TrendingUp} />
@@ -90,52 +107,50 @@ function Dashboard() {
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <Card className="panel">
-          <CardHeader>
-            <CardTitle className="font-display text-base">Offres suggérées</CardTitle>
+        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="font-display text-base text-slate-950">Offres recommandées</CardTitle>
+              <p className="mt-1 text-xs text-slate-500">Des opportunités basées sur votre profil.</p>
+            </div>
+            <Link to="/offres" className="text-xs font-medium text-indigo-600 hover:text-indigo-700">Voir tout</Link>
           </CardHeader>
           <CardContent className="space-y-3">
             {topMatches.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                Aucune offre enregistrée pour l'instant. {" "}
-                <Link to="/offres" className="text-primary underline-offset-4 hover:underline">
-                  Recherchez un métier
-                </Link>{" "}
-                pour découvrir des opportunités.
-              </p>
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-5 text-center">
+                <p className="text-sm font-medium text-slate-700">Aucune recommandation pour l'instant</p>
+                <p className="mt-1 text-xs text-slate-500">Recherchez directement un métier pour découvrir des opportunités.</p>
+                <Button asChild size="sm" className="mt-4"><Link to="/offres">Rechercher un métier</Link></Button>
+              </div>
             )}
             {topMatches.map((m) => (
-              <div
-                key={m.job_id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-border/70 p-3"
-              >
+              <div key={m.job_id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 transition-colors hover:border-indigo-200 hover:bg-indigo-50/40">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{m.job!.title}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {m.job!.company} · {m.job!.location}
-                  </p>
+                  <p className="truncate text-sm font-medium text-slate-900">{m.job!.title}</p>
+                  <p className="truncate text-xs text-slate-500">{m.job!.company} · {m.job!.location}</p>
                 </div>
-                <Badge variant={m.score >= 75 ? "default" : "secondary"}>{m.score}%</Badge>
+                <Badge className="shrink-0 bg-emerald-50 text-emerald-700 hover:bg-emerald-50">{m.score}%</Badge>
               </div>
             ))}
           </CardContent>
         </Card>
 
-        <Card className="panel">
+        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
           <CardHeader>
-            <CardTitle className="font-display text-base">Suivi des candidatures</CardTitle>
+            <CardTitle className="font-display text-base text-slate-950">Suivi des candidatures</CardTitle>
+            <p className="mt-1 text-xs text-slate-500">Visualisez rapidement où vous en êtes.</p>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {(Object.keys(APPLICATION_STATUSES) as ApplicationStatus[]).map((s) => (
-                <div key={s} className="rounded-lg border border-border/70 p-3">
-                  <p className="font-display text-2xl font-semibold">{counts[s] ?? 0}</p>
-                  <p className="text-xs text-muted-foreground">{APPLICATION_STATUSES[s]}</p>
+                <div key={s} className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                  <p className="font-display text-2xl font-semibold text-slate-950">{counts[s] ?? 0}</p>
+                  <p className="mt-1 text-xs text-slate-500">{APPLICATION_STATUSES[s]}</p>
                 </div>
               ))}
             </div>
-            <Button asChild variant="outline" className="mt-4 w-full">
-              <Link to="/candidatures">Voir mes candidatures</Link>
+            <Button asChild variant="outline" className="mt-4 w-full border-slate-200">
+              <Link to="/candidatures">Voir mes candidatures <ArrowRight className="ml-2 size-4" /></Link>
             </Button>
           </CardContent>
         </Card>
