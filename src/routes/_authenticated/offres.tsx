@@ -290,7 +290,7 @@ function JobsPage() {
   );
 }
 
-function JobCard({ job, match, busy, onOpen, onMatch, onApply }: { job: Job; match?: MatchLite; busy: boolean; onOpen: () => void; onMatch: () => void; onApply: () => void }) {
+function JobCard({ job, match, busy, onOpen, onMatch, onApply }: { job: Job; match?: MatchLite | undefined; busy: boolean; onOpen: () => void; onMatch: () => void; onApply: () => void }) {
   const score = match?.score;
   return (
     <Card className="group flex cursor-pointer flex-col overflow-hidden border-border/60 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500/40 hover:shadow-xl" onClick={onOpen}>
@@ -305,6 +305,6 @@ function JobCard({ job, match, busy, onOpen, onMatch, onApply }: { job: Job; mat
   );
 }
 
-function JobPreview({ job, match, busy, onMatch, onApply }: { job: Job; match?: MatchLite; busy: boolean; onMatch: () => void; onApply: () => void }) {
+function JobPreview({ job, match, busy, onMatch, onApply }: { job: Job; match?: MatchLite | undefined; busy: boolean; onMatch: () => void; onApply: () => void }) {
   return <><SheetHeader><div className="mb-2 flex flex-wrap gap-2"><Badge className="bg-blue-600">Offre compatible</Badge>{job.source && <Badge variant="outline">{job.source}</Badge>}</div><SheetTitle className="text-2xl">{job.title}</SheetTitle><p className="text-sm text-muted-foreground">{job.company} · {job.location || job.country}</p></SheetHeader><div className="space-y-6 py-6"><div className="grid grid-cols-2 gap-3">{[["Contrat", job.contract_type], ["Niveau", job.level], ["Salaire", job.salary], ["Pays", job.country]].map(([label, value]) => value && <div key={label} className="rounded-xl border bg-muted/30 p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-sm font-medium">{value}</p></div>)}</div><div><h3 className="mb-2 font-semibold">Description</h3><p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{job.description}</p></div>{match && <div><h3 className="mb-3 font-semibold">Analyse de compatibilité</h3><div className="space-y-2 rounded-xl border p-4">{(Object.keys(BREAKDOWN_LABELS) as (keyof MatchResult["breakdown"])[]).map((key) => { const value = match.breakdown?.[key]; return value == null ? null : <div key={key}><div className="flex justify-between text-xs"><span>{BREAKDOWN_LABELS[key]}</span><span>{value}%</span></div><div className="mt-1 h-1.5 rounded-full bg-muted"><div className="h-full rounded-full bg-cyan-500" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} /></div></div>; })}<p className="pt-2 text-xs text-muted-foreground">{match.reasoning}</p></div></div>}<div className="flex gap-2"><Button className="flex-1 bg-blue-600 hover:bg-blue-500" onClick={onApply}><Send className="mr-2 size-4" />Postuler</Button><Button variant="outline" onClick={onMatch} disabled={busy}>{busy ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}</Button>{job.url && <Button asChild variant="outline"><a href={job.url} target="_blank" rel="noopener noreferrer"><ExternalLink className="size-4" /></a></Button>}</div></div></>;
 }
