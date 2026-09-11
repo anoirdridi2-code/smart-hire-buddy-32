@@ -35,12 +35,12 @@ export const Route = createFileRoute("/_authenticated/profil")({
       {
         name: "description",
         content:
-          "Renseignez votre domaine, expérience, pays cibles, salaire souhaité et langues pour affiner l'IA.",
+          "Renseignez votre domaine, expérience, pays cibles, salaire souhaité et langues pour personnaliser votre expérience Karriera.",
       },
       { property: "og:title", content: "Mon profil candidat — Karriera" },
       {
         property: "og:description",
-        content: "Vos préférences guident l'analyse du CV et le matching des offres.",
+        content: "Vos préférences personnalisent les recommandations et les outils IA de Karriera.",
       },
     ],
   }),
@@ -126,7 +126,7 @@ function ProfilePage() {
   const fields: [keyof typeof form, string, string][] = [
     ["full_name", "Nom complet", "Amine Ben Salah"],
     ["target_roles", "Métiers recherchés", "Serveuse, Réceptionniste hôtel"],
-    ["domain", "Domaine (ancien champ, optionnel)", "Informatique, Mécanique, Électrique…"],
+    ["domain", "Domaine", "Informatique, Mécanique, Électrique…"],
     ["experience_years", "Années d'expérience", "3"],
     ["countries", "Pays souhaités", "Tunisie, France, Canada"],
     ["city", "Ville", "Tunis"],
@@ -136,7 +136,7 @@ function ProfilePage() {
   ];
 
   return (
-    <AppShell title="Profil" description="Ces informations affinent l'analyse et le matching">
+    <AppShell title="Profil" description="Vos préférences et informations professionnelles">
       <Card className="panel max-w-2xl">
         <CardContent className="p-6">
           <form onSubmit={save} className="grid gap-4 sm:grid-cols-2">
@@ -171,8 +171,7 @@ function ProfilePage() {
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">
-                Vous pouvez sélectionner plusieurs secteurs. Utilisé pour trouver des offres
-                réellement pertinentes pour votre métier.
+                Vous pouvez sélectionner plusieurs secteurs pour personnaliser les recommandations de Karriera.
               </p>
             </div>
             <div className="space-y-2 sm:col-span-2">
