@@ -195,7 +195,7 @@ function JobsPage() {
   const visibleJobs = [...relevantJobs, ...unevaluatedJobs, ...lessRelevantJobs];
 
   async function handleImport() {
-    if (raw.trim().length < 40) return toast.error("Collez une annonce plus complète (40 caractères minimum).");
+    if (raw.trim().length < 40) { toast.error("Collez une annonce plus complète (40 caractères minimum)."); return; }
     setImporting(true);
     try {
       await importJob({ data: { raw: raw.trim() } });
@@ -205,7 +205,7 @@ function JobsPage() {
   }
 
   async function runMatch(jobId: string) {
-    if (!cv) return toast.error("Importez et analysez d'abord un CV.");
+    if (!cv) { toast.error("Importez et analysez d'abord un CV."); return; }
     setBusyJob(jobId);
     try { await matchJob({ data: { cvId: cv.id, jobId } }); refresh(["matches"]); }
     catch (e) { toast.error(e instanceof Error ? e.message : "Matching impossible."); }
@@ -213,7 +213,7 @@ function JobsPage() {
   }
 
   async function matchAll() {
-    if (!cv) return toast.error("Importez et analysez d'abord un CV.");
+    if (!cv) { toast.error("Importez et analysez d'abord un CV."); return; }
     setMatchingAll(true);
     try {
       for (const job of compatibleJobs.filter((j) => !scoreByJob.has(j.id)).slice(0, 8)) await matchJob({ data: { cvId: cv.id, jobId: job.id } });
@@ -224,9 +224,9 @@ function JobsPage() {
 
   async function apply(jobId: string) {
     const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) return toast.error("Session utilisateur introuvable.");
+    if (!userData.user) { toast.error("Session utilisateur introuvable."); return; }
     const { error } = await supabase.from("applications").insert({ user_id: userData.user.id, job_id: jobId, cv_id: cv?.id ?? null, status: "applied" });
-    if (error) return toast.error("Candidature déjà enregistrée ou erreur.");
+    if (error) { toast.error("Candidature déjà enregistrée ou erreur."); return; }
     refresh(["applications"]); toast.success("Candidature enregistrée.");
   }
 
