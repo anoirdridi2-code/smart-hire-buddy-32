@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as InscriptionProfessionnelRouteImport } from './routes/inscription-professionnel'
 import { Route as AuthenticatedAgentRouteImport } from './routes/_authenticated/agent'
 import { Route as AuthenticatedCandidaturesRouteImport } from './routes/_authenticated/candidatures'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
@@ -40,6 +41,12 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InscriptionProfessionnelRoute =
+  InscriptionProfessionnelRouteImport.update({
+    id: '/inscription-professionnel',
+    path: '/inscription-professionnel',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAgentRoute = AuthenticatedAgentRouteImport.update({
   id: '/agent',
   path: '/agent',
@@ -114,6 +121,7 @@ const ApiVoiceTranscribeRoute = ApiVoiceTranscribeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/inscription-professionnel': typeof InscriptionProfessionnelRoute
   '/agent': typeof AuthenticatedAgentRoute
   '/candidatures': typeof AuthenticatedCandidaturesRoute
   '/coach': typeof AuthenticatedCoachRoute
@@ -131,6 +139,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/inscription-professionnel': typeof InscriptionProfessionnelRoute
   '/agent': typeof AuthenticatedAgentRoute
   '/candidatures': typeof AuthenticatedCandidaturesRoute
   '/coach': typeof AuthenticatedCoachRoute
@@ -150,6 +159,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/inscription-professionnel': typeof InscriptionProfessionnelRoute
   '/_authenticated/agent': typeof AuthenticatedAgentRoute
   '/_authenticated/candidatures': typeof AuthenticatedCandidaturesRoute
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/inscription-professionnel'
     | '/agent'
     | '/candidatures'
     | '/coach'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/inscription-professionnel'
     | '/agent'
     | '/candidatures'
     | '/coach'
@@ -204,6 +216,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/inscription-professionnel'
     | '/_authenticated/agent'
     | '/_authenticated/candidatures'
     | '/_authenticated/coach'
@@ -223,6 +236,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  InscriptionProfessionnelRoute: typeof InscriptionProfessionnelRoute
   ApiVoiceSpeakRoute: typeof ApiVoiceSpeakRoute
   ApiVoiceTranscribeRoute: typeof ApiVoiceTranscribeRoute
 }
@@ -248,6 +262,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inscription-professionnel': {
+      id: '/inscription-professionnel'
+      path: '/inscription-professionnel'
+      fullPath: '/inscription-professionnel'
+      preLoaderRoute: typeof InscriptionProfessionnelRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/agent': {
@@ -379,6 +400,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  InscriptionProfessionnelRoute: InscriptionProfessionnelRoute,
   ApiVoiceSpeakRoute: ApiVoiceSpeakRoute,
   ApiVoiceTranscribeRoute: ApiVoiceTranscribeRoute,
 }
