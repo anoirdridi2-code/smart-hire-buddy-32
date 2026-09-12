@@ -42,8 +42,8 @@ function ApplicationsPage() {
     return acc;
   }, {});
   const activeCount = items.filter((a) => ["applied", "screening", "interview"].includes(a.status as string)).length;
-  const interviewCount = statusCounts.interview ?? 0;
-  const acceptedCount = statusCounts.accepted ?? 0;
+  const interviewCount = statusCounts["interview"] ?? 0;
+  const acceptedCount = statusCounts["accepted"] ?? 0;
 
   return (
     <AppShell title="Candidatures" description="Gardez une vue claire sur toutes vos opportunités">
