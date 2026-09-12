@@ -35,6 +35,9 @@ function relevance(job: LiveJob, terms: string[]): number { const title = normal
 export function isProfessionallyRelevantLiveJob(job: Pick<LiveJob, "title" | "description">, profileSources: string[]): boolean {
   const text = `${job.title} ${job.description}`;
   const industrialProfile = hasAny(profileSources.join(" "), ["industrie", "electricite", "automatisme", "maintenance", "electrotechnique", "electromecanique", "instrumentation", "controle", "robotique", "energie", "mecanique", "industrial", "automation", "electrical", "electromechanical", "plc", "scada"]);
+  const digitalProfile = hasAny(profileSources.join(" "), SOFTWARE_FAMILY.concat(BUSINESS_FAMILY, ["informatique", "digital", "web", "data", "design"]));
+  // Une offre tech/marketing n'est gardée que si le profil est lui-même tech/marketing.
+  if (hasAny(job.title, SOFTWARE_FAMILY) || hasAny(job.title, BUSINESS_FAMILY)) return digitalProfile && !industrialProfile;
   if (hasAny(text, SOFTWARE_FAMILY) || hasAny(text, BUSINESS_FAMILY)) return !industrialProfile;
   return true;
 }
