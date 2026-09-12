@@ -98,7 +98,12 @@ export async function fetchLiveJobs(query: string, limit = 40, extraKeywords: st
   const searchTerms = buildSearchQueries(sources, 8);
   const hospitalityQuery = hasAny(explicitQuery, ["serveur", "serveuse", "waiter", "waitress", "restaurant", "hospitality", "restauration"]);
   const technicalQuery = hasAny(explicitQuery, INDUSTRIAL_STRONG);
-  const results = await Promise.all(searchTerms.flatMap((q) => [fromRemotive(q), fromJobicy(q), fromHimalayas(q)]));
+  // JobDataAPI couvre tous les métiers ; les board « remote » sont quasi exclusivement tech/marketing
+  // et ne sont donc interrogés que pour les profils numériques.
+  const digitalProfile = hasAny(sources.join(" "), DIGITAL_PROFILE);
+  const results = await Promise.all(
+    searchTerms.flatMap((q) => (digitalProfile ? [fromJobDataApi(q), fromRemotive(q), fromJobicy(q), fromHimalayas(q)] : [fromJobDataApi(q)])),
+  );
   const seen = new Set<string>(); const scored: Array<{ job: LiveJob; score: number }> = [];
   for (const pool of results) for (const job of pool) {
     if (!job.url || !job.title || !job.company || seen.has(job.url)) continue;
