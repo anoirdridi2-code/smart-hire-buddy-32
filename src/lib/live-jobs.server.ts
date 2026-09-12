@@ -117,7 +117,7 @@ export async function fetchLiveJobs(query: string, limit = 40, extraKeywords: st
       if (technicalQuery && hasAny(jobText, SOFTWARE_FAMILY.concat(BUSINESS_FAMILY))) continue;
     } else if (!isProfessionallyRelevantLiveJob(job, sources)) continue;
     const score = relevance(job, terms);
-    if (score < (explicitQuery ? 3 : 7)) continue;
+    if (score < (explicitQuery ? 3 : 5)) continue;
     scored.push({ job, score });
   }
   return scored.sort((a, b) => b.score - a.score).slice(0, limit).map((s) => s.job);
