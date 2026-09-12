@@ -19,6 +19,7 @@ import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedCvRouteImport } from './routes/_authenticated/cv'
 import { Route as AuthenticatedEntreprisesRouteImport } from './routes/_authenticated/entreprises'
 import { Route as AuthenticatedEntretienRouteImport } from './routes/_authenticated/entretien'
+import { Route as AuthenticatedEvaluationRouteImport } from './routes/_authenticated/evaluation'
 import { Route as AuthenticatedOffresRouteImport } from './routes/_authenticated/offres'
 import { Route as AuthenticatedProfilRouteImport } from './routes/_authenticated/profil'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
@@ -79,6 +80,11 @@ const AuthenticatedEntretienRoute = AuthenticatedEntretienRouteImport.update({
   path: '/entretien',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEvaluationRoute = AuthenticatedEvaluationRouteImport.update({
+  id: '/evaluation',
+  path: '/evaluation',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedOffresRoute = AuthenticatedOffresRouteImport.update({
   id: '/offres',
   path: '/offres',
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/cv': typeof AuthenticatedCvRoute
   '/entreprises': typeof AuthenticatedEntreprisesRoute
   '/entretien': typeof AuthenticatedEntretienRoute
+  '/evaluation': typeof AuthenticatedEvaluationRoute
   '/offres': typeof AuthenticatedOffresRoute
   '/profil': typeof AuthenticatedProfilRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/cv': typeof AuthenticatedCvRoute
   '/entreprises': typeof AuthenticatedEntreprisesRoute
   '/entretien': typeof AuthenticatedEntretienRoute
+  '/evaluation': typeof AuthenticatedEvaluationRoute
   '/offres': typeof AuthenticatedOffresRoute
   '/profil': typeof AuthenticatedProfilRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/_authenticated/cv': typeof AuthenticatedCvRoute
   '/_authenticated/entreprises': typeof AuthenticatedEntreprisesRoute
   '/_authenticated/entretien': typeof AuthenticatedEntretienRoute
+  '/_authenticated/evaluation': typeof AuthenticatedEvaluationRoute
   '/_authenticated/offres': typeof AuthenticatedOffresRoute
   '/_authenticated/profil': typeof AuthenticatedProfilRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/cv'
     | '/entreprises'
     | '/entretien'
+    | '/evaluation'
     | '/offres'
     | '/profil'
     | '/tableau-de-bord'
@@ -204,6 +214,7 @@ export interface FileRouteTypes {
     | '/cv'
     | '/entreprises'
     | '/entretien'
+    | '/evaluation'
     | '/offres'
     | '/profil'
     | '/tableau-de-bord'
@@ -223,6 +234,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cv'
     | '/_authenticated/entreprises'
     | '/_authenticated/entretien'
+    | '/_authenticated/evaluation'
     | '/_authenticated/offres'
     | '/_authenticated/profil'
     | '/_authenticated/tableau-de-bord'
@@ -313,6 +325,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEntretienRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/evaluation': {
+      id: '/_authenticated/evaluation'
+      path: '/evaluation'
+      fullPath: '/evaluation'
+      preLoaderRoute: typeof AuthenticatedEvaluationRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/offres': {
       id: '/_authenticated/offres'
       path: '/offres'
@@ -372,6 +391,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCvRoute: typeof AuthenticatedCvRoute
   AuthenticatedEntreprisesRoute: typeof AuthenticatedEntreprisesRoute
   AuthenticatedEntretienRoute: typeof AuthenticatedEntretienRoute
+  AuthenticatedEvaluationRoute: typeof AuthenticatedEvaluationRoute
   AuthenticatedOffresRoute: typeof AuthenticatedOffresRoute
   AuthenticatedProfilRoute: typeof AuthenticatedProfilRoute
   AuthenticatedTableauDeBordRoute: typeof AuthenticatedTableauDeBordRoute
@@ -386,6 +406,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCvRoute: AuthenticatedCvRoute,
   AuthenticatedEntreprisesRoute: AuthenticatedEntreprisesRoute,
   AuthenticatedEntretienRoute: AuthenticatedEntretienRoute,
+  AuthenticatedEvaluationRoute: AuthenticatedEvaluationRoute,
   AuthenticatedOffresRoute: AuthenticatedOffresRoute,
   AuthenticatedProfilRoute: AuthenticatedProfilRoute,
   AuthenticatedTableauDeBordRoute: AuthenticatedTableauDeBordRoute,
