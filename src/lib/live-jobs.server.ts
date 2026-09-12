@@ -66,6 +66,29 @@ async function fromRemotive(query: string): Promise<LiveJob[]> { const q = query
 type JobicyJob = { jobTitle: string; companyName: string; jobDescription?: string; jobExcerpt?: string; url: string; jobGeo: string; jobType: string[] | string; jobLevel: string; annualSalaryMin?: number; salaryCurrency?: string; pubDate: string };
 async function fromJobicy(query: string): Promise<LiveJob[]> { const q = query ? `&tag=${encodeURIComponent(query)}` : ""; const data = await getJson<{ jobs: JobicyJob[] }>(`https://jobicy.com/api/v2/remote-jobs?count=40${q}`, 20000); if (!data?.jobs) return []; return data.jobs.map((j) => { const types = Array.isArray(j.jobType) ? j.jobType : [j.jobType].filter(Boolean); return { title: j.jobTitle, company: j.companyName, description: clean(j.jobDescription ?? j.jobExcerpt ?? ""), url: j.url, location: j.jobGeo || "Télétravail", country: null, contract_type: (types[0] as string) ?? null, level: j.jobLevel || null, salary: j.annualSalaryMin && j.annualSalaryMin > 0 ? `${j.annualSalaryMin} ${j.salaryCurrency ?? ""}`.trim() : null, source: "Jobicy (télétravail)", posted_at: j.pubDate ? j.pubDate.slice(0, 10) : null, remote: "Télétravail" }; }); }
 
+type JobDataApiJob = { title: string; company?: { name?: string } | null; description?: string; application_url?: string; location?: string | null; countries?: Array<{ name?: string }> | null; types?: Array<{ name?: string }> | null; experience_level?: string | null; salary_min?: number | null; salary_currency?: string | null; published?: string | null; has_remote?: boolean };
+async function fromJobDataApi(query: string): Promise<LiveJob[]> {
+  const q = query ? `?title=${encodeURIComponent(query)}` : "";
+  const data = await getJson<{ results: JobDataApiJob[] }>(`https://jobdataapi.com/api/jobs/${q}`, 20000);
+  if (!data?.results) return [];
+  return data.results.map((j) => ({
+    title: j.title,
+    company: (j.company?.name || "").trim(),
+    description: clean(j.description ?? ""),
+    url: j.application_url || "",
+    location: j.location || null,
+    country: j.countries?.[0]?.name || guessCountry(j.location ?? null),
+    contract_type: j.types?.[0]?.name || null,
+    level: j.experience_level || null,
+    salary: j.salary_min && j.salary_min > 0 ? `${j.salary_min} ${j.salary_currency ?? ""}`.trim() : null,
+    source: "JobDataAPI (tous métiers)",
+    posted_at: j.published ? j.published.slice(0, 10) : null,
+    remote: j.has_remote ? "Télétravail" : null,
+  }));
+}
+
+const DIGITAL_PROFILE = SOFTWARE_FAMILY.concat(BUSINESS_FAMILY, ["informatique", "digital", "web", "it ", "data", "design"]);
+
 export function buildSearchQueries(sources: string[], max = 6): string[] { const queries: string[] = []; const push = (q: string) => { const v = q.trim(); if (v && !queries.some((x) => normalize(x) === normalize(v))) queries.push(v); }; for (const source of sources) { if (!source?.trim()) continue; const norm = normalize(source); let matched = false; for (const [key, syns] of Object.entries(SYNONYMS)) { if (norm.includes(key.slice(0, Math.min(6, key.length)))) { for (const s of syns.slice(0, 3)) push(s); matched = true; } } if (!matched) push(source.trim()); if (queries.length >= max) break; } return queries.slice(0, max); }
 
 export async function fetchLiveJobs(query: string, limit = 40, extraKeywords: string[] = [], roles: string[] = []): Promise<LiveJob[]> {
