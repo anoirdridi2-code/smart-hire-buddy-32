@@ -42,8 +42,25 @@ export function isProfessionallyRelevantLiveJob(job: Pick<LiveJob, "title" | "de
 const EU_COUNTRIES: Record<string, string> = { berlin: "Allemagne", munich: "Allemagne", münchen: "Allemagne", hamburg: "Allemagne", köln: "Allemagne", frankfurt: "Allemagne", paris: "France", lyon: "France", marseille: "France", toulouse: "France", nantes: "France", bordeaux: "France", tunis: "Tunisie", sfax: "Tunisie", montréal: "Canada", montreal: "Canada", toronto: "Canada", dubai: "Émirats arabes unis", doha: "Qatar", riyadh: "Arabie saoudite" };
 function guessCountry(location: string | null): string | null { if (!location) return null; const low = location.toLowerCase(); for (const [city, country] of Object.entries(EU_COUNTRIES)) if (low.includes(city)) return country; return null; }
 
-type ArbeitnowJob = { title: string; company_name: string; description: string; url: string; location: string; remote: boolean | string; job_types: string[] | string; created_at: number };
-async function fromArbeitnow(): Promise<LiveJob[]> { const data = await getJson<{ data: ArbeitnowJob[] }>("https://www.arbeitnow.com/api/job-board-api", 25000); if (!data?.data) return []; return data.data.map((j) => ({ title: j.title, company: j.company_name, description: clean(j.description), url: j.url, location: j.location || null, country: guessCountry(j.location), contract_type: Array.isArray(j.job_types) ? j.job_types[0] ?? null : null, level: null, salary: null, source: "Arbeitnow (Europe)", posted_at: j.created_at ? new Date(Number(j.created_at) * 1000).toISOString().slice(0, 10) : null, remote: String(j.remote) === "true" || j.remote === true ? "Télétravail" : null })); }
+type HimalayasJob = { title: string; companyName: string; description?: string; excerpt?: string; applicationLink?: string; guid?: string; locationRestrictions?: string[] | string; employmentType?: string; seniority?: string[] | string; minSalary?: number | string; maxSalary?: number | string; currency?: string; pubDate?: number | string };
+async function fromHimalayas(query: string): Promise<LiveJob[]> {
+  const q = query ? `&search=${encodeURIComponent(query)}` : "";
+  const data = await getJson<{ jobs: HimalayasJob[] }>(`https://himalayas.app/jobs/api?limit=40${q}`, 20000);
+  if (!data?.jobs) return [];
+  return data.jobs.map((j) => {
+    const loc = Array.isArray(j.locationRestrictions) ? j.locationRestrictions.slice(0, 3).join(", ") : j.locationRestrictions || "";
+    const sen = Array.isArray(j.seniority) ? j.seniority[0] ?? null : j.seniority || null;
+    const min = Number(j.minSalary ?? 0);
+    const posted = Number(j.pubDate ?? 0);
+    return {
+      title: j.title, company: (j.companyName || "").trim(), description: clean(j.description ?? j.excerpt ?? ""),
+      url: j.applicationLink || j.guid || "", location: loc || "Télétravail", country: guessCountry(loc || null),
+      contract_type: j.employmentType || null, level: sen, salary: min > 0 ? `${min} ${j.currency ?? ""}`.trim() : null,
+      source: "Himalayas (international)", posted_at: posted > 0 ? new Date(posted * 1000).toISOString().slice(0, 10) : null,
+      remote: "Télétravail",
+    };
+  });
+}
 type RemotiveJob = { title: string; company_name: string; description: string; url: string; candidate_required_location: string; job_type: string; salary: string; publication_date: string };
 async function fromRemotive(query: string): Promise<LiveJob[]> { const q = query ? `&search=${encodeURIComponent(query)}` : ""; const data = await getJson<{ jobs: RemotiveJob[] }>(`https://remotive.com/api/remote-jobs?limit=40${q}`, 20000); if (!data?.jobs) return []; return data.jobs.map((j) => ({ title: j.title, company: (j.company_name || "").trim(), description: clean(j.description), url: j.url, location: j.candidate_required_location || "Télétravail", country: null, contract_type: j.job_type || null, level: null, salary: j.salary || null, source: "Remotive (télétravail)", posted_at: j.publication_date ? j.publication_date.slice(0, 10) : null, remote: "Télétravail" })); }
 type JobicyJob = { jobTitle: string; companyName: string; jobDescription?: string; jobExcerpt?: string; url: string; jobGeo: string; jobType: string[] | string; jobLevel: string; annualSalaryMin?: number; salaryCurrency?: string; pubDate: string };
